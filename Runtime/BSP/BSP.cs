@@ -21,12 +21,10 @@ namespace Espionage.Engine.Source
 
             Head = new Header( reader );
 
-            // Read Vertices
-            reader.BaseStream.Seek( Head[3].Offset, SeekOrigin.Begin );
-
-            Vertices = new Vector3[Head[3].Length / 12];
-            for ( var i = 0; i < Head[3].Length / 12; i++ )
-                Vertices[i] = reader.ReadVec3( );
+            Planes = Read( reader, Head.Lumps[1], 20, e => new Plane( e ) );
+            TexDatas = Read( reader, Head.Lumps[2], 32, e => new TexData( e ) );
+            Vertices = Read( reader, Head.Lumps[3], 12, e => e.ReadVec3( ) );
+            Cubemaps = Read( reader, Head.Lumps[42], 16, e => new Cubemap( e ) );
         }
 
         //
@@ -35,7 +33,6 @@ namespace Espionage.Engine.Source
 
         public readonly struct Header
         {
-            public Lump this[ int key ] => Lumps[key];
             public string Format => Encoding.UTF8.GetString( Indent );
 
             public Header( BinaryReader reader )
@@ -76,21 +73,71 @@ namespace Espionage.Engine.Source
 
         // Lumps
 
-        public readonly Vector3[] Vertices; // LUMP 3
-
-        //
-        // Face
-        //
-
-        public readonly struct Face
+        private static T[] Read<T>( BinaryReader reader, Header.Lump lump, int size, Func<BinaryReader, T> item )
         {
-            public readonly ushort Plane;
-            public readonly byte Side;
-            public readonly byte OnNode;
+            reader.BaseStream.Seek( lump.Offset, SeekOrigin.Begin );
 
-            // Edges
-            public readonly int FirstEdge;
-            public readonly short NumEdges;
+            var final = new T[lump.Length / size];
+            for ( var i = 0; i < lump.Length / size; i++ )
+                final[i] = item.Invoke( reader );
+
+            return final;
+        }
+
+        // Entities // LUMP 0
+        public readonly Plane[] Planes; // LUMP 1
+        public readonly TexData[] TexDatas; // LUMP 2
+        public readonly Vector3[] Vertices; // LUMP 3
+        public readonly Cubemap[] Cubemaps; // LUMP 42
+
+        //
+        // Structs
+        //
+
+        public readonly struct Plane
+        {
+            public Plane( BinaryReader reader )
+            {
+                Normal = reader.ReadVec3( );
+                Distance = reader.ReadSingle( );
+                Type = reader.ReadInt32( );
+            }
+
+            public readonly Vector3 Normal;
+            public readonly float Distance; // From Origin
+            public readonly int Type; // Axis Identifier
+        }
+
+        public readonly struct TexData
+        {
+            public TexData( BinaryReader reader )
+            {
+                Reflectivity = reader.ReadVec3( );
+                NameID = reader.ReadInt32( );
+
+                Width = reader.ReadInt32( );
+                Height = reader.ReadInt32( );
+
+                ViewWidth = reader.ReadInt32( );
+                ViewHeight = reader.ReadInt32( );
+            }
+
+            public readonly Vector3 Reflectivity;
+            public readonly int NameID;
+            public readonly int Width, Height;
+            public readonly int ViewWidth, ViewHeight; // Tf are these for?
+        }
+
+        public readonly struct Cubemap
+        {
+            public Cubemap( BinaryReader reader )
+            {
+                Origin = reader.ReadVec3( );
+                Size = reader.ReadInt32( );
+            }
+
+            public readonly Vector3 Origin;
+            public readonly int Size;
         }
     }
 }

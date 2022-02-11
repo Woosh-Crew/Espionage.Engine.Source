@@ -75,7 +75,7 @@ namespace Espionage.Engine.Source
             {
                 var go = GameObject.CreatePrimitive( PrimitiveType.Cube );
                 go.transform.localScale = Vector3.one * 0.4f;
-                go.transform.position = item * 0.333f;
+                go.transform.position = item * 0.0333f;
             }
 
             IsLoading = false;

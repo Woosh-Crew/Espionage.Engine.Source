@@ -85,7 +85,7 @@ namespace Espionage.Engine.Source
             return final;
         }
 
-        // Entities // LUMP 0
+        public readonly Entity[] Entities; // LUMP 0
         public readonly Plane[] Planes; // LUMP 1
         public readonly TexData[] TexDatas; // LUMP 2
         public readonly Vector3[] Vertices; // LUMP 3s
@@ -95,6 +95,12 @@ namespace Espionage.Engine.Source
         //
         // Structs
         //
+
+        public readonly struct Entity
+        {
+            public readonly string ClassName;
+            public readonly Dictionary<string, string> KeyValues;
+        }
 
         public readonly struct Plane
         {

@@ -70,7 +70,12 @@ namespace Espionage.Engine.Source
             Scene = SceneManager.CreateScene( Path.GetFileName( _bsp.File.Name ) );
 
             foreach ( var bspVertex in _bsp.Vertices )
-                GameObject.CreatePrimitive( PrimitiveType.Cube ).transform.position = bspVertex;
+            {
+                var prim = GameObject.CreatePrimitive( PrimitiveType.Cube );
+
+                prim.transform.position = bspVertex;
+                prim.transform.localScale = Vector3.one * 0.3f;
+            }
 
             IsLoading = false;
             finished?.Invoke( );

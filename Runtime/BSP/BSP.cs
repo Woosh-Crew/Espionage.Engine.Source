@@ -22,12 +22,14 @@ namespace Espionage.Engine.Source
             Head = new Header( reader );
 
             // Temp Shit
-            var vertexLump = Head.Lumps[3];
+            var entityLump = Head.Lumps[0];
 
-            reader.BaseStream.Seek( vertexLump.Offset, SeekOrigin.Begin );
+            reader.BaseStream.Seek( entityLump.Offset, SeekOrigin.Begin );
 
-            while ( reader.BaseStream.Position != vertexLump.Offset + vertexLump.Length )
-                Vertices.Add( reader.ReadVec3( ) * 0.0254f );
+            var textDump = reader.ReadBytes( entityLump.Length );
+            var dump = Encoding.UTF8.GetString( textDump );
+
+            Debugging.Log.Info( dump );
         }
 
         //

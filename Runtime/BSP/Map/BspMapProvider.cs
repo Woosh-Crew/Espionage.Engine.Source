@@ -56,7 +56,8 @@ namespace Espionage.Engine.Source
         {
             IsLoading = true;
 
-            Debugging.Log.Info( $"Loading {_bsp.Head.Format}" );
+            Debugging.Log.Info( $"Loading {_bsp.File.Name}" );
+            Debugging.Log.Info( $"Format {_bsp.Head.Format}" );
             Debugging.Log.Info( $"Version {_bsp.Head.Version}" );
             Debugging.Log.Info( $"Revision {_bsp.Head.Revision}" );
 

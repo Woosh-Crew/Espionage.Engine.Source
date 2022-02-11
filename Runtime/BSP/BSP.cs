@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
+using UnityEngine;
 
 namespace Espionage.Engine.Source
 {
@@ -12,11 +15,19 @@ namespace Espionage.Engine.Source
         {
             File = info;
 
-            // Open Streams
+            // Open Streams for reading the header
             using var fileStream = File.Open( FileMode.Open, FileAccess.Read );
             using var reader = new BinaryReader( fileStream );
 
             Head = new Header( reader );
+
+            // Temp Shit
+            var vertexLump = Head.Lumps[3];
+
+            reader.BaseStream.Seek( vertexLump.Offset, SeekOrigin.Begin );
+
+            while ( reader.BaseStream.Position != vertexLump.Offset + vertexLump.Length )
+                Vertices.Add( reader.ReadVec3( ) * 0.0254f );
         }
 
         //
@@ -63,8 +74,10 @@ namespace Espionage.Engine.Source
             }
         }
 
-        // 
-        // Lump
         //
+        // Lumps
+        //
+
+        public List<Vector3> Vertices = new( );
     }
 }

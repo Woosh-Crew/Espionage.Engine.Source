@@ -12,9 +12,9 @@ using UnityEngine.SceneManagement;
 
 namespace Espionage.Engine.Source
 {
-    public class BspMapProvider : IMapProvider
+    public class BspMapProvider : IMapProvider, ICallbacks
     {
-#if UNITY_EDITOR
+    #if UNITY_EDITOR
 
         [MenuItem( "Source/Load BSP" )]
         public static void LoadMap( )
@@ -26,7 +26,7 @@ namespace Espionage.Engine.Source
             map.Load( );
         }
 
-#endif
+    #endif
 
         // Id
         public string Identifier => _bsp.File.FullName;
@@ -64,10 +64,13 @@ namespace Espionage.Engine.Source
             for ( var i = 0; i < _bsp.Head.Lumps.Length; i++ )
             {
                 var lump = _bsp.Head.Lumps[i];
-                Debugging.Log.Info( $"Lump {i} [{lump.Offset} / {lump.Offset + lump.Length}]" );
+                Debugging.Log.Info( $"Lump {i} [{lump.Offset} / {lump.Offset + lump.Length}] ({lump.Length})" );
             }
 
             Scene = SceneManager.CreateScene( Path.GetFileName( _bsp.File.Name ) );
+
+            foreach ( var bspVertex in _bsp.Vertices )
+                GameObject.CreatePrimitive( PrimitiveType.Cube ).transform.position = bspVertex;
 
             IsLoading = false;
             finished?.Invoke( );

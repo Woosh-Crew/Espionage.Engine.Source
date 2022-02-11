@@ -24,6 +24,7 @@ namespace Espionage.Engine.Source
             Planes = Read( reader, Head.Lumps[1], 20, e => new Plane( e ) );
             TexDatas = Read( reader, Head.Lumps[2], 32, e => new TexData( e ) );
             Vertices = Read( reader, Head.Lumps[3], 12, e => e.ReadSourceVec3( ) );
+            Faces = Read( reader, Head.Lumps[7], 56, e => new Face( e ) );
             Cubemaps = Read( reader, Head.Lumps[42], 16, e => new Cubemap( e ) );
         }
 
@@ -88,6 +89,7 @@ namespace Espionage.Engine.Source
         public readonly Plane[] Planes; // LUMP 1
         public readonly TexData[] TexDatas; // LUMP 2
         public readonly Vector3[] Vertices; // LUMP 3s
+        public readonly Face[] Faces; // LUMP 7
         public readonly Cubemap[] Cubemaps; // LUMP 42
 
         //
@@ -147,6 +149,55 @@ namespace Espionage.Engine.Source
 
             public readonly Vector3 Origin;
             public readonly int Size;
+        }
+
+        public readonly struct Face
+        {
+            public Face( BinaryReader reader )
+            {
+                PlaneNum = reader.ReadUInt16( );
+                Side = reader.ReadByte( );
+                OnNode = reader.ReadBoolean( );
+                FirstEdge = reader.ReadInt32( );
+                NumEdges = reader.ReadInt16( );
+                TexInfo = reader.ReadInt16( );
+                DisplacementInfo = reader.ReadInt16( );
+                SurfaceFogVolumeID = reader.ReadInt16( );
+                Styles = reader.ReadBytes( 4 );
+                LightOffset = reader.ReadInt32( );
+                Area = reader.ReadSingle( );
+
+                LightmapTextureMinsInLuxels = new int[2];
+                LightmapTextureMinsInLuxels[0] = reader.ReadInt32( );
+                LightmapTextureMinsInLuxels[1] = reader.ReadInt32( );
+
+                LightmapTextureSizeInLuxels = new int[2];
+                LightmapTextureSizeInLuxels[0] = reader.ReadInt32( );
+                LightmapTextureSizeInLuxels[1] = reader.ReadInt32( );
+
+                OriginalFace = reader.ReadInt32( );
+                NumPrims = reader.ReadUInt16( );
+                FirstPrimID = reader.ReadUInt16( );
+                SmoothingGroups = reader.ReadUInt32( );
+            }
+
+            public readonly ushort PlaneNum;
+            public readonly byte Side;
+            public readonly bool OnNode;
+            public readonly int FirstEdge;
+            public readonly short NumEdges;
+            public readonly short TexInfo;
+            public readonly short DisplacementInfo;
+            public readonly short SurfaceFogVolumeID;
+            public readonly byte[] Styles;
+            public readonly int LightOffset;
+            public readonly float Area;
+            public readonly int[] LightmapTextureMinsInLuxels;
+            public readonly int[] LightmapTextureSizeInLuxels;
+            public readonly int OriginalFace;
+            public readonly ushort NumPrims;
+            public readonly ushort FirstPrimID;
+            public readonly uint SmoothingGroups;
         }
     }
 }

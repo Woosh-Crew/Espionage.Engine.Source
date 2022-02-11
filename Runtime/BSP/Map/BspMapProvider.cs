@@ -9,6 +9,7 @@ using Espionage.Engine.Resources;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 namespace Espionage.Engine.Source
 {
@@ -68,13 +69,13 @@ namespace Espionage.Engine.Source
             }
 
             Scene = SceneManager.CreateScene( Path.GetFileName( _bsp.File.Name ) );
+            SceneManager.SetActiveScene( Scene.Value );
 
-            foreach ( var bspVertex in _bsp.Vertices )
+            foreach ( var item in _bsp.Vertices )
             {
-                var prim = GameObject.CreatePrimitive( PrimitiveType.Cube );
-
-                prim.transform.position = bspVertex;
-                prim.transform.localScale = Vector3.one * 0.3f;
+                var go = GameObject.CreatePrimitive( PrimitiveType.Cube );
+                go.transform.localScale = Vector3.one * 0.4f;
+                go.transform.position = item * 0.333f;
             }
 
             IsLoading = false;

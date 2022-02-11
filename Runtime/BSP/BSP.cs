@@ -21,15 +21,12 @@ namespace Espionage.Engine.Source
 
             Head = new Header( reader );
 
-            // Temp Shit
-            var entityLump = Head.Lumps[0];
+            // Read Vertices
+            reader.BaseStream.Seek( Head[3].Offset, SeekOrigin.Begin );
 
-            reader.BaseStream.Seek( entityLump.Offset, SeekOrigin.Begin );
-
-            var textDump = reader.ReadBytes( entityLump.Length );
-            var dump = Encoding.UTF8.GetString( textDump );
-
-            Debugging.Log.Info( dump );
+            Vertices = new Vector3[Head[3].Length / 12];
+            for ( var i = 0; i < Head[3].Length / 12; i++ )
+                Vertices[i] = reader.ReadVec3( );
         }
 
         //
@@ -38,6 +35,7 @@ namespace Espionage.Engine.Source
 
         public readonly struct Header
         {
+            public Lump this[ int key ] => Lumps[key];
             public string Format => Encoding.UTF8.GetString( Indent );
 
             public Header( BinaryReader reader )
@@ -76,10 +74,23 @@ namespace Espionage.Engine.Source
             }
         }
 
-        //
         // Lumps
+
+        public readonly Vector3[] Vertices; // LUMP 3
+
+        //
+        // Face
         //
 
-        public List<Vector3> Vertices = new( );
+        public readonly struct Face
+        {
+            public readonly ushort Plane;
+            public readonly byte Side;
+            public readonly byte OnNode;
+
+            // Edges
+            public readonly int FirstEdge;
+            public readonly short NumEdges;
+        }
     }
 }

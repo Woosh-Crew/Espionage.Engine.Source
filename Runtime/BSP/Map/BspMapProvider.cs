@@ -14,6 +14,20 @@ namespace Espionage.Engine.Source
 {
     public class BspMapProvider : IMapProvider
     {
+#if UNITY_EDITOR
+
+        [MenuItem( "Source/Load BSP" )]
+        public static void LoadMap( )
+        {
+            var path = EditorUtility.OpenFilePanel( "BSP", @"D:\Programs\SteamLibrary\steamapps\common\Half-Life 2\hl2\maps", "bsp" );
+            var bsp = new BSP( new FileInfo( path ) );
+
+            var map = new Map( new BspMapProvider( bsp ) );
+            map.Load( );
+        }
+
+#endif
+
         // Id
         public string Identifier => _bsp.File.FullName;
 
@@ -42,7 +56,10 @@ namespace Espionage.Engine.Source
         {
             IsLoading = true;
 
-            Debugging.Log.Info( "Loading BSP" );
+            Debugging.Log.Info( $"Loading {_bsp.Head.Format}" );
+            Debugging.Log.Info( $"Version {_bsp.Head.Version}" );
+            Debugging.Log.Info( $"Revision {_bsp.Head.Revision}" );
+
             Scene = SceneManager.CreateScene( Path.GetFileName( _bsp.File.Name ) );
 
             IsLoading = false;

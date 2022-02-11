@@ -25,6 +25,8 @@ namespace Espionage.Engine.Source
 
         public readonly struct Header
         {
+            public string Format => Encoding.UTF8.GetString( Indent );
+
             public Header( BinaryReader reader )
             {
                 Indent = reader.ReadBytes( 4 );
@@ -36,8 +38,6 @@ namespace Espionage.Engine.Source
             }
 
             public readonly byte[] Indent;
-            public string Formant => Encoding.UTF8.GetString( Indent );
-
             public readonly int Version;
             public readonly int Revision;
         }

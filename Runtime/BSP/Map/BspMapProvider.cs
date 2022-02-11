@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Text;
 using Espionage.Engine.Resources;
 using UnityEditor;
 using UnityEngine;
@@ -12,19 +14,8 @@ namespace Espionage.Engine.Source
 {
     public class BspMapProvider : IMapProvider
     {
-#if UNITY_EDITOR
-
-        [MenuItem( "Source/Load Bsp" )]
-        public static void Loadmap( )
-        {
-            var path = EditorUtility.OpenFilePanel( "Load .bsp File", @"D:\Programs\SteamLibrary\steamapps\common\Half-Life 2\hl2\maps", "bsp" );
-            var map = new Map( new BspMapProvider( path ) ).Load( );
-        }
-
-#endif
-
         // Id
-        public string Identifier => _path;
+        public string Identifier => _bsp.File.FullName;
 
         // Outcome
         public Scene? Scene { get; private set; }
@@ -33,39 +24,26 @@ namespace Espionage.Engine.Source
         public float Progress => 0;
         public bool IsLoading { get; private set; }
 
-        public BspMapProvider( string path )
+        public BspMapProvider( BSP bsp )
         {
-            if ( !File.Exists( path ) && Path.GetExtension( path ) != "bsp" )
-                throw new DirectoryNotFoundException( $"Unable to BSP map {path}, Invalid Map Path" );
-
-            _path = path;
-            _file = new FileInfo( path );
+            // BSP Map Provider
+            // Is just an Espionage.Engine
+            // Wrapper for maps.
+            _bsp = bsp;
         }
 
         //
         // Resource
         //
 
-        private readonly FileInfo _file;
-        private readonly string _path;
+        private readonly BSP _bsp;
 
         public void Load( Action finished )
         {
             IsLoading = true;
 
             Debugging.Log.Info( "Loading BSP" );
-            Scene = SceneManager.CreateScene( Path.GetFileName( _path ) );
-
-            // Just some testing shit
-            using ( var fileStream = _file.Open( FileMode.Open ) )
-            using ( var reader = new BinaryReader( fileStream ) )
-            {
-                reader.BaseStream.Position = 4;
-                var version = reader.Read( );
-
-                Debugging.Log.Info( $"{version}" );
-            }
-
+            Scene = SceneManager.CreateScene( Path.GetFileName( _bsp.File.Name ) );
 
             IsLoading = false;
             finished?.Invoke( );

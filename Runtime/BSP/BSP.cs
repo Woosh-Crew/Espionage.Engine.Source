@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Text;
-using Espionage.Engine.Resources;
 
 namespace Espionage.Engine.Source
 {
@@ -13,8 +12,11 @@ namespace Espionage.Engine.Source
         {
             File = info;
 
-            // Get Header
-            Head = GrabHeader( );
+            // Open Streams
+            using var fileStream = File.Open( FileMode.Open );
+            using var reader = new BinaryReader( fileStream );
+
+            Head = new Header( reader );
         }
 
         //
@@ -23,32 +25,21 @@ namespace Espionage.Engine.Source
 
         public struct Header
         {
+            public Header( BinaryReader reader )
+            {
+                Indent = reader.ReadBytes( 4 );
+                Version = reader.Read( );
+
+                // Put us after the lumps
+                reader.BaseStream.Position = 16 * 64;
+                Revision = reader.Read( );
+            }
+
             public byte[] Indent;
             public string Formant => Encoding.UTF8.GetString( Indent );
 
             public int Version;
             public int Revision;
-        }
-
-        private Header GrabHeader( )
-        {
-            // Just some testing shit
-            using var fileStream = File.Open( FileMode.Open );
-            using var reader = new BinaryReader( fileStream );
-
-            var indent = reader.ReadBytes( 4 );
-            var version = reader.Read( );
-
-            // Put us after the lumps
-            reader.BaseStream.Position = 16 * 64;
-
-            var revision = reader.Read( );
-
-            return new Header( )
-            {
-                Indent = indent,
-                Version = version
-            };
         }
     }
 }

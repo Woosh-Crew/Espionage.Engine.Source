@@ -61,6 +61,12 @@ namespace Espionage.Engine.Source
             Debugging.Log.Info( $"Version {_bsp.Head.Version}" );
             Debugging.Log.Info( $"Revision {_bsp.Head.Revision}" );
 
+            for ( var i = 0; i < _bsp.Head.Lumps.Length; i++ )
+            {
+                var lump = _bsp.Head.Lumps[i];
+                Debugging.Log.Info( $"Lump {i} [{lump.Offset} / {lump.Offset + lump.Length}]" );
+            }
+
             Scene = SceneManager.CreateScene( Path.GetFileName( _bsp.File.Name ) );
 
             IsLoading = false;

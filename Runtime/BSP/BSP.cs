@@ -30,7 +30,7 @@ namespace Espionage.Engine.Source
             public Header( BinaryReader reader )
             {
                 Indent = reader.ReadBytes( 4 );
-                Version = reader.ReadInt16( );
+                Version = reader.ReadInt32( );
 
                 // Read Lumps
                 Lumps = new Lump[64];
@@ -38,15 +38,15 @@ namespace Espionage.Engine.Source
                 {
                     var lump = Lumps[i];
 
-                    lump.Offset = reader.ReadInt16( );
-                    lump.Length = reader.ReadInt16( );
-                    lump.Version = reader.ReadInt16( );
+                    lump.Offset = reader.ReadInt32( );
+                    lump.Length = reader.ReadInt32( );
+                    lump.Version = reader.ReadInt32( );
                     lump.Indent = reader.ReadBytes( 4 );
 
                     Lumps[i] = lump;
                 }
 
-                Revision = reader.ReadInt16( );
+                Revision = reader.ReadInt32( );
             }
 
             public readonly byte[] Indent;

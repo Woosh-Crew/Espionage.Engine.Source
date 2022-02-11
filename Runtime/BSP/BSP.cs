@@ -23,7 +23,7 @@ namespace Espionage.Engine.Source
         // Header
         //
 
-        public struct Header
+        public readonly struct Header
         {
             public Header( BinaryReader reader )
             {
@@ -35,11 +35,11 @@ namespace Espionage.Engine.Source
                 Revision = reader.Read( );
             }
 
-            public byte[] Indent;
+            public readonly byte[] Indent;
             public string Formant => Encoding.UTF8.GetString( Indent );
 
-            public int Version;
-            public int Revision;
+            public readonly int Version;
+            public readonly int Revision;
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Espionage.Engine.Source
             File = info;
 
             // Open Streams
-            using var fileStream = File.Open( FileMode.Open );
+            using var fileStream = File.Open( FileMode.Open, FileAccess.Read );
             using var reader = new BinaryReader( fileStream );
 
             Head = new Header( reader );
@@ -31,15 +31,18 @@ namespace Espionage.Engine.Source
             {
                 Indent = reader.ReadBytes( 4 );
                 Version = reader.Read( );
-
-                // Put us after the lumps
-                reader.BaseStream.Position = 16 * 64;
+                Lumps = null;
                 Revision = reader.Read( );
             }
 
             public readonly byte[] Indent;
+            public readonly int[] Lumps;
             public readonly int Version;
             public readonly int Revision;
         }
+
+        // 
+        // Lump
+        //
     }
 }

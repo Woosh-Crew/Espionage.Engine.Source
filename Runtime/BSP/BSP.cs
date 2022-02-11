@@ -23,7 +23,7 @@ namespace Espionage.Engine.Source
 
             Planes = Read( reader, Head.Lumps[1], 20, e => new Plane( e ) );
             TexDatas = Read( reader, Head.Lumps[2], 32, e => new TexData( e ) );
-            Vertices = Read( reader, Head.Lumps[3], 12, e => e.ReadVec3( ) );
+            Vertices = Read( reader, Head.Lumps[3], 12, e => e.ReadSourceVec3( ) );
             Cubemaps = Read( reader, Head.Lumps[42], 16, e => new Cubemap( e ) );
         }
 
@@ -87,7 +87,7 @@ namespace Espionage.Engine.Source
         // Entities // LUMP 0
         public readonly Plane[] Planes; // LUMP 1
         public readonly TexData[] TexDatas; // LUMP 2
-        public readonly Vector3[] Vertices; // LUMP 3
+        public readonly Vector3[] Vertices; // LUMP 3s
         public readonly Cubemap[] Cubemaps; // LUMP 42
 
         //
@@ -98,7 +98,7 @@ namespace Espionage.Engine.Source
         {
             public Plane( BinaryReader reader )
             {
-                Normal = reader.ReadVec3( );
+                Normal = reader.ReadSourceVec3( );
                 Distance = reader.ReadSingle( );
                 Type = reader.ReadInt32( );
             }
@@ -112,7 +112,7 @@ namespace Espionage.Engine.Source
         {
             public TexData( BinaryReader reader )
             {
-                Reflectivity = reader.ReadVec3( );
+                Reflectivity = reader.ReadSourceVec3( );
                 NameID = reader.ReadInt32( );
 
                 Width = reader.ReadInt32( );
@@ -132,8 +132,17 @@ namespace Espionage.Engine.Source
         {
             public Cubemap( BinaryReader reader )
             {
-                Origin = reader.ReadVec3( );
-                Size = reader.ReadInt32( );
+                // We cant use ReadVec3 here, cause
+                // its actually 3 ints.
+
+                var x = reader.ReadInt32( );
+                var z = reader.ReadInt32( );
+                var y = reader.ReadInt32( );
+
+                Origin = new Vector3( x, y, z );
+
+                var res = reader.ReadInt32( );
+                Size = res == 0 ? 256 : res;
             }
 
             public readonly Vector3 Origin;

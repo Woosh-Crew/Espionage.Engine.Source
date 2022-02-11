@@ -78,6 +78,16 @@ namespace Espionage.Engine.Source
                 go.transform.position = item * 0.0333f;
             }
 
+            // Place Cubemaps
+            foreach ( var item in _bsp.Cubemaps )
+            {
+                var go = new GameObject( "env_cubemap" );
+                var probe = go.AddComponent<ReflectionProbe>( );
+                probe.resolution = item.Size;
+                probe.size = Vector3.one * 50;
+                go.transform.position = item.Origin * 0.0333f;
+            }
+
             IsLoading = false;
             finished?.Invoke( );
         }

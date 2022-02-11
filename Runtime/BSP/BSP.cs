@@ -25,6 +25,7 @@ namespace Espionage.Engine.Source
             TexDatas = Read( reader, Head.Lumps[2], 32, e => new TexData( e ) );
             Vertices = Read( reader, Head.Lumps[3], 12, e => e.ReadSourceVec3( ) );
             Faces = Read( reader, Head.Lumps[7], 56, e => new Face( e ) );
+            Edges = Read( reader, Head.Lumps[12], 4, e => new Edge( e ) );
             Cubemaps = Read( reader, Head.Lumps[42], 16, e => new Cubemap( e ) );
         }
 
@@ -90,6 +91,7 @@ namespace Espionage.Engine.Source
         public readonly TexData[] TexDatas; // LUMP 2
         public readonly Vector3[] Vertices; // LUMP 3s
         public readonly Face[] Faces; // LUMP 7
+        public readonly Edge[] Edges; // LUMP 12
         public readonly Cubemap[] Cubemaps; // LUMP 42
 
         //
@@ -134,6 +136,18 @@ namespace Espionage.Engine.Source
             public readonly int NameID;
             public readonly int Width, Height;
             public readonly int ViewWidth, ViewHeight; // Tf are these for?
+        }
+
+        public readonly struct Edge
+        {
+            public Edge( BinaryReader reader )
+            {
+                VertexIndices = new ushort[2];
+                VertexIndices[0] = reader.ReadUInt16( );
+                VertexIndices[1] = reader.ReadUInt16( );
+            }
+
+            public readonly ushort[] VertexIndices;
         }
 
         public readonly struct Cubemap

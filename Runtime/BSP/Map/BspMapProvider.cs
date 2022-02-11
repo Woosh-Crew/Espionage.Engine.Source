@@ -71,13 +71,6 @@ namespace Espionage.Engine.Source
             Scene = SceneManager.CreateScene( Path.GetFileName( _bsp.File.Name ) );
             SceneManager.SetActiveScene( Scene.Value );
 
-            foreach ( var item in _bsp.Vertices )
-            {
-                var go = GameObject.CreatePrimitive( PrimitiveType.Cube );
-                go.transform.localScale = Vector3.one * 0.4f;
-                go.transform.position = item * 0.0333f;
-            }
-
             // Place Cubemaps
             foreach ( var item in _bsp.Cubemaps )
             {
@@ -87,6 +80,16 @@ namespace Espionage.Engine.Source
                 probe.size = Vector3.one * 50;
                 go.transform.position = item.Origin * 0.0333f;
             }
+
+            // Create Mesh
+            var gameObject = new GameObject( "World" );
+            var meshFilter = gameObject.AddComponent<MeshFilter>( );
+
+            var mesh = new Mesh( );
+            mesh.vertices = _bsp.Vertices;
+
+            meshFilter.mesh = mesh;
+
 
             IsLoading = false;
             finished?.Invoke( );

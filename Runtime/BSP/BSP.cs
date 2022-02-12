@@ -8,6 +8,9 @@ namespace Espionage.Engine.Source
 {
     public class BSP
     {
+        public const float Scale = 0.0333f;
+
+
         public Header Head { get; }
         public FileInfo File { get; }
 

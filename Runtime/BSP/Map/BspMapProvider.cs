@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Espionage.Engine.Resources;
@@ -45,6 +46,7 @@ namespace Espionage.Engine.Source
             // Is just an Espionage.Engine
             // Wrapper for maps.
             _bsp = bsp;
+            Callback.Register( this );
         }
 
         //
@@ -52,6 +54,13 @@ namespace Espionage.Engine.Source
         //
 
         private readonly BSP _bsp;
+
+        [Callback( "debug.gizmos" )]
+        public void Shit( )
+        {
+            foreach ( var edge in _bsp.Edges )
+                Gizmos.DrawLine( _bsp.Vertices[edge.VertexIndices[0]] * BSP.Scale, _bsp.Vertices[edge.VertexIndices[1]] * BSP.Scale );
+        }
 
         public void Load( Action finished )
         {
@@ -88,8 +97,16 @@ namespace Espionage.Engine.Source
             var mesh = new Mesh( );
             mesh.vertices = _bsp.Vertices;
 
-            meshFilter.mesh = mesh;
+            // Build TRI Tree
+            var tris = new int[_bsp.Edges.Length * 2];
+            for ( var i = 0; i < _bsp.Edges.Length; i++ )
+            {
+                tris[i] = _bsp.Edges[i].VertexIndices[0];
+                tris[i + 1] = _bsp.Edges[i].VertexIndices[1];
+            }
 
+            mesh.triangles = tris;
+            meshFilter.mesh = mesh;
 
             IsLoading = false;
             finished?.Invoke( );

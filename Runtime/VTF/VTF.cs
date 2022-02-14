@@ -32,7 +32,6 @@ namespace Espionage.Engine.Source
         {
             public string Format => Encoding.UTF8.GetString( Indent );
 
-
             public Header( BinaryReader reader )
             {
                 Indent = reader.ReadBytes( 4 );

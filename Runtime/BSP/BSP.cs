@@ -153,6 +153,18 @@ namespace Espionage.Engine.Source
             public readonly ushort[] VertexIndices;
         }
 
+        public readonly struct SurfEdge
+        {
+            public SurfEdge( BinaryReader reader )
+            {
+                VertexIndices = new ushort[2];
+                VertexIndices[0] = reader.ReadUInt16( );
+                VertexIndices[1] = reader.ReadUInt16( );
+            }
+
+            public readonly ushort[] VertexIndices;
+        }
+
         public readonly struct Cubemap
         {
             public Cubemap( BinaryReader reader )

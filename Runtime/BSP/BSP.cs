@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Espionage.Engine.Source
 {
+    /// <summary>Deserialized BSP Data</summary>
     public class BSP
     {
         public const float Scale = 0.0333f;

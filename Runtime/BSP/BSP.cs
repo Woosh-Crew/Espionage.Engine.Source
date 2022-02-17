@@ -26,8 +26,11 @@ namespace Espionage.Engine.Source
             Head = new Header( reader );
 
             Planes = Read( reader, Head.Lumps[1], 20, e => new Plane( e ) );
-            TexDatas = Read( reader, Head.Lumps[2], 32, e => new TexData( e ) );
+            TextureDatas = Read( reader, Head.Lumps[2], 32, e => new TextureData( e ) );
             Vertices = Read( reader, Head.Lumps[3], 12, e => e.ReadSourceVec3() );
+            Visibility = Read( reader, Head.Lumps[4], 12, e => new Vis( e ) );
+            Nodes = Read( reader, Head.Lumps[5], 32, e => new Node( e ) );
+            TextureInfos = Read( reader, Head.Lumps[6], 72, e => new TextureInfo( e ) );
             Faces = Read( reader, Head.Lumps[7], 56, e => new Face( e ) );
             Edges = Read( reader, Head.Lumps[12], 4, e => new Edge( e ) );
             Cubemaps = Read( reader, Head.Lumps[42], 16, e => new Cubemap( e ) );
@@ -92,8 +95,11 @@ namespace Espionage.Engine.Source
 
         public readonly Entity[] Entities; // LUMP 0
         public readonly Plane[] Planes; // LUMP 1
-        public readonly TexData[] TexDatas; // LUMP 2
+        public readonly TextureData[] TextureDatas; // LUMP 2
         public readonly Vector3[] Vertices; // LUMP 3
+        public readonly Vis[] Visibility; // LUMP 4
+        public readonly Node[] Nodes; // LUMP 5
+        public readonly TextureInfo[] TextureInfos; // LUMP 6
         public readonly Face[] Faces; // LUMP 7
         public readonly Edge[] Edges; // LUMP 12
         public readonly Cubemap[] Cubemaps; // LUMP 42
@@ -122,9 +128,9 @@ namespace Espionage.Engine.Source
             public readonly int Type; // Axis Identifier
         }
 
-        public readonly struct TexData
+        public readonly struct TextureData
         {
-            public TexData( BinaryReader reader )
+            public TextureData( BinaryReader reader )
             {
                 Reflectivity = reader.ReadSourceVec3();
                 NameID = reader.ReadInt32();
@@ -142,9 +148,9 @@ namespace Espionage.Engine.Source
             public readonly int ViewWidth, ViewHeight; // Tf are these for?
         }
 
-        public readonly struct Visibility
+        public readonly struct Vis
         {
-            public Visibility( BinaryReader reader )
+            public Vis( BinaryReader reader )
             {
                 NumClusters = reader.ReadInt32();
 
@@ -161,6 +167,67 @@ namespace Espionage.Engine.Source
             public readonly int[,] BytesOf;
         }
 
+        public readonly struct TextureInfo
+        {
+            public TextureInfo( BinaryReader reader )
+            {
+                TextureVecs = new float[2, 4];
+                for ( var x = 0; x < 2; x++ )
+                for ( var y = 0; y < 4; y++ )
+                    TextureVecs[x, y] = reader.ReadInt32();
+
+                LightmapVecs = new float[2, 4];
+                for ( var x = 0; x < 2; x++ )
+                for ( var y = 0; y < 4; y++ )
+                    LightmapVecs[x, y] = reader.ReadInt32();
+
+                Flags = reader.ReadInt32();
+                TexData = reader.ReadInt32();
+            }
+
+            public readonly float[,] TextureVecs;
+            public readonly float[,] LightmapVecs;
+            public readonly int Flags;
+            public readonly int TexData;
+        }
+
+        public readonly struct Node
+        {
+            public Node( BinaryReader reader )
+            {
+                PlaneNum = reader.ReadInt32();
+
+                Children = new int[2];
+                Children[0] = reader.ReadInt32();
+                Children[1] = reader.ReadInt32();
+
+                Mins = new short[3];
+                for ( var i = 0; i < 3; i++ )
+                    Mins[i] = reader.ReadInt16();
+
+                Maxs = new short[3];
+                for ( var i = 0; i < 3; i++ )
+                    Maxs[i] = reader.ReadInt16();
+
+                FirstFace = reader.ReadUInt16();
+                NumFaces = reader.ReadUInt16();
+
+                Area = reader.ReadInt16();
+                Padding = reader.ReadInt16();
+            }
+
+            public readonly int PlaneNum;
+            public readonly int[] Children;
+
+            public readonly short[] Mins;
+            public readonly short[] Maxs;
+
+            public readonly ushort FirstFace;
+            public readonly ushort NumFaces;
+
+            public readonly short Area;
+            public readonly short Padding;
+        }
 
         public readonly struct Edge
         {

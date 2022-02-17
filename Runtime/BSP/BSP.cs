@@ -93,7 +93,7 @@ namespace Espionage.Engine.Source
         public readonly Entity[] Entities; // LUMP 0
         public readonly Plane[] Planes; // LUMP 1
         public readonly TexData[] TexDatas; // LUMP 2
-        public readonly Vector3[] Vertices; // LUMP 3s
+        public readonly Vector3[] Vertices; // LUMP 3
         public readonly Face[] Faces; // LUMP 7
         public readonly Edge[] Edges; // LUMP 12
         public readonly Cubemap[] Cubemaps; // LUMP 42
@@ -141,6 +141,26 @@ namespace Espionage.Engine.Source
             public readonly int Width, Height;
             public readonly int ViewWidth, ViewHeight; // Tf are these for?
         }
+
+        public readonly struct Visibility
+        {
+            public Visibility( BinaryReader reader )
+            {
+                NumClusters = reader.ReadInt32();
+
+                BytesOf = new int[NumClusters, 2];
+
+                for ( var i = 0; i < NumClusters; i++ )
+                {
+                    BytesOf[i, 0] = reader.ReadInt32();
+                    BytesOf[i, 1] = reader.ReadInt32();
+                }
+            }
+
+            public readonly int NumClusters;
+            public readonly int[,] BytesOf;
+        }
+
 
         public readonly struct Edge
         {

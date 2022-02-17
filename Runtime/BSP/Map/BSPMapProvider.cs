@@ -81,39 +81,12 @@ namespace Espionage.Engine.Source
             for ( var i = 0; i < _bsp.Head.Lumps.Length; i++ )
             {
                 var lump = _bsp.Head.Lumps[i];
-                Debugging.Log.Info( $"Lump {i} [{lump.Offset} / {lump.Offset + lump.Length}] ({lump.Length})" );
+                Debugging.Log.Info( $"Lump {i} [Start: {lump.Offset} - End: {lump.Offset + lump.Length}] (Length: {lump.Length})" );
             }
 
+            // Create Scene
             Scene = SceneManager.CreateScene( Path.GetFileName( _bsp.File.Name ) );
             SceneManager.SetActiveScene( Scene.Value );
-
-            // Place Cubemaps
-            foreach ( var item in _bsp.Cubemaps )
-            {
-                var go = new GameObject( "env_cubemap" );
-                var probe = go.AddComponent<ReflectionProbe>();
-                probe.resolution = item.Size;
-                probe.size = Vector3.one * 50;
-                go.transform.position = item.Origin * 0.0333f;
-            }
-
-            // Create Mesh
-            var gameObject = new GameObject( "World" );
-            var meshFilter = gameObject.AddComponent<MeshFilter>();
-
-            var mesh = new Mesh();
-            mesh.vertices = _bsp.Vertices;
-
-            // Build TRI Tree
-            var tris = new int[_bsp.Edges.Length * 2];
-            for ( var i = 0; i < _bsp.Edges.Length; i++ )
-            {
-                tris[i] = _bsp.Edges[i].VertexIndices[0];
-                tris[i + 1] = _bsp.Edges[i].VertexIndices[1];
-            }
-
-            mesh.triangles = tris;
-            meshFilter.mesh = mesh;
 
             IsLoading = false;
             finished?.Invoke();

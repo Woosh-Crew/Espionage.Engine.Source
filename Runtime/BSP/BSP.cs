@@ -27,11 +27,12 @@ namespace Espionage.Engine.Source
             Planes = Read( reader, Head.Lumps[1], 20, e => new Plane( e ) );
             TextureDatas = Read( reader, Head.Lumps[2], 32, e => new TextureData( e ) );
             Vertices = Read( reader, Head.Lumps[3], 12, e => e.ReadSourceVec3() );
-            Visibility = Read( reader, Head.Lumps[4], 12, e => new Vis( e ) );
+            // Visibility = Read( reader, Head.Lumps[4], 12, e => new Vis( e ) );
             Nodes = Read( reader, Head.Lumps[5], 32, e => new Node( e ) );
             TextureInfos = Read( reader, Head.Lumps[6], 72, e => new TextureInfo( e ) );
             Faces = Read( reader, Head.Lumps[7], 56, e => new Face( e ) );
             Edges = Read( reader, Head.Lumps[12], 4, e => new Edge( e ) );
+            SurfEdges = Read( reader, Head.Lumps[13], 4, e => e.ReadInt32() );
             Cubemaps = Read( reader, Head.Lumps[42], 16, e => new Cubemap( e ) );
         }
 
@@ -101,6 +102,7 @@ namespace Espionage.Engine.Source
         public readonly TextureInfo[] TextureInfos; // LUMP 6
         public readonly Face[] Faces; // LUMP 7
         public readonly Edge[] Edges; // LUMP 12
+        public readonly int[] SurfEdges; // LUMP 13
         public readonly Cubemap[] Cubemaps; // LUMP 42
 
         //
@@ -231,18 +233,6 @@ namespace Espionage.Engine.Source
         public readonly struct Edge
         {
             public Edge( BinaryReader reader )
-            {
-                VertexIndices = new ushort[2];
-                VertexIndices[0] = reader.ReadUInt16();
-                VertexIndices[1] = reader.ReadUInt16();
-            }
-
-            public readonly ushort[] VertexIndices;
-        }
-
-        public readonly struct SurfEdge
-        {
-            public SurfEdge( BinaryReader reader )
             {
                 VertexIndices = new ushort[2];
                 VertexIndices[0] = reader.ReadUInt16();

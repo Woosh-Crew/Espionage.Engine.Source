@@ -14,6 +14,8 @@ namespace Espionage.Engine.Source
         [MenuItem( "Source/Load BSP" )]
         public static void LoadMap()
         {
+            using var _ = Debugging.Stopwatch( "Loading BSP" );
+
             var path = EditorUtility.OpenFilePanel( "BSP", @"D:\Programs\SteamLibrary\steamapps\common\Half-Life 2\hl2\maps", "bsp" );
             var bsp = new BSP( new FileInfo( path ) );
 
@@ -74,13 +76,13 @@ namespace Espionage.Engine.Source
             IsLoading = true;
 
             Debugging.Log.Info( $"Loading {_bsp.File.Name}" );
-            Debugging.Log.Info( $"Format {_bsp.Head.Format}" );
-            Debugging.Log.Info( $"Version {_bsp.Head.Version}" );
-            Debugging.Log.Info( $"Revision {_bsp.Head.Revision}" );
+            Debugging.Log.Info( $"Format {_bsp.Reader.Header.Format}" );
+            Debugging.Log.Info( $"Version {_bsp.Reader.Header.Version}" );
+            Debugging.Log.Info( $"Revision {_bsp.Reader.Header.Revision}" );
 
-            for ( var i = 0; i < _bsp.Head.Lumps.Length; i++ )
+            for ( var i = 0; i < _bsp.Reader.Header.Lumps.Length; i++ )
             {
-                var lump = _bsp.Head.Lumps[i];
+                var lump = _bsp.Reader.Header.Lumps[i];
                 Debugging.Log.Info( $"Lump {i} [Start: {lump.Offset} - End: {lump.Offset + lump.Length}] (Length: {lump.Length})" );
             }
 

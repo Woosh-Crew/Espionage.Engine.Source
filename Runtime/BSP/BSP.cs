@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
 using UnityEngine;
 
 namespace Espionage.Engine.Source
 {
     /// <summary>Deserialized BSP Data</summary>
-    public class BSP
+    public partial class BSP
     {
         public const float Scale = 0.0333f;
 
-        public Header Head { get; }
         public FileInfo File { get; }
+        public BSPReader Reader { get; }
 
         public BSP( FileInfo info )
         {
@@ -20,77 +20,31 @@ namespace Espionage.Engine.Source
 
             // Open Streams for reading the header
             using var fileStream = File.Open( FileMode.Open, FileAccess.Read );
-            using var reader = new BinaryReader( fileStream );
+            using var binaryReader = new BinaryReader( fileStream );
 
-            Head = new Header( reader );
+            Reader = new BSPReader( binaryReader );
 
-            Planes = Read( reader, Head.Lumps[1], 20, e => new Plane( e ) );
-            TextureDatas = Read( reader, Head.Lumps[2], 32, e => new TextureData( e ) );
-            Vertices = Read( reader, Head.Lumps[3], 12, e => e.ReadSourceVec3() );
+            Planes = Reader.Read<Plane>( 1, 20 );
+            TextureDatas = Reader.Read<TextureData>( 2, 32 );
+            TextureDatas = Reader.Read<TextureData>( 2, 32 );
+
+            var vertices = Reader.Read<Vector>( 3, 12 );
+            Vertices = vertices.Select( e => e.Convert() ).ToArray();
+
+            Edges = Reader.Read<Edge>( 12, 4 );
+
+            /*
+            Planes = Read( binaryReader, Head.Lumps[1], 20, e => new Plane( e ) );
+            TextureDatas = Read( binaryReader, Head.Lumps[2], 32, e => new TextureData( e ) );
+            Vertices = Read( binaryReader, Head.Lumps[3], 12, e => e.ReadSourceVec3() );
             // Visibility = Read( reader, Head.Lumps[4], 12, e => new Vis( e ) );
-            Nodes = Read( reader, Head.Lumps[5], 32, e => new Node( e ) );
-            TextureInfos = Read( reader, Head.Lumps[6], 72, e => new TextureInfo( e ) );
-            Faces = Read( reader, Head.Lumps[7], 56, e => new Face( e ) );
-            Edges = Read( reader, Head.Lumps[12], 4, e => new Edge( e ) );
-            SurfEdges = Read( reader, Head.Lumps[13], 4, e => e.ReadInt32() );
-            Cubemaps = Read( reader, Head.Lumps[42], 16, e => new Cubemap( e ) );
-        }
-
-        //
-        // Header
-        //
-
-        public readonly struct Header
-        {
-            public string Format => Encoding.UTF8.GetString( Indent );
-
-            public Header( BinaryReader reader )
-            {
-                Indent = reader.ReadBytes( 4 );
-                Version = reader.ReadInt32();
-
-                // Read Lumps
-                Lumps = new Lump[64];
-                for ( var i = 0; i < 64; i++ )
-                {
-                    var lump = Lumps[i];
-
-                    lump.Offset = reader.ReadInt32();
-                    lump.Length = reader.ReadInt32();
-                    lump.Version = reader.ReadInt32();
-                    lump.Indent = reader.ReadBytes( 4 );
-
-                    Lumps[i] = lump;
-                }
-
-                Revision = reader.ReadInt32();
-            }
-
-            public readonly byte[] Indent;
-            public readonly Lump[] Lumps;
-            public readonly int Version;
-            public readonly int Revision;
-
-            public struct Lump
-            {
-                public int Offset;
-                public int Length;
-                public int Version;
-                public byte[] Indent;
-            }
-        }
-
-        // Lumps
-
-        private static T[] Read<T>( BinaryReader reader, Header.Lump lump, int size, Func<BinaryReader, T> item )
-        {
-            reader.BaseStream.Seek( lump.Offset, SeekOrigin.Begin );
-
-            var final = new T[lump.Length / size];
-            for ( var i = 0; i < lump.Length / size; i++ )
-                final[i] = item.Invoke( reader );
-
-            return final;
+            Nodes = Read( binaryReader, Head.Lumps[5], 32, e => new Node( e ) );
+            TextureInfos = Read( binaryReader, Head.Lumps[6], 72, e => new TextureInfo( e ) );
+            Faces = Read( binaryReader, Head.Lumps[7], 56, e => new Face( e ) );
+            Edges = Read( binaryReader, Head.Lumps[12], 4, e => new Edge( e ) );
+            SurfEdges = Read( binaryReader, Head.Lumps[13], 4, e => e.ReadInt32() );
+            Cubemaps = Read( binaryReader, Head.Lumps[42], 16, e => new Cubemap( e ) );
+            */
         }
 
         public readonly Entity[] Entities; // LUMP 0
@@ -115,23 +69,44 @@ namespace Espionage.Engine.Source
             public readonly Dictionary<string, string> KeyValues;
         }
 
-        public readonly struct Plane
+        public struct Plane : ILump
         {
-            public Plane( BinaryReader reader )
+            public Vector3 Normal;
+            public float Distance; // From Origin
+            public int Type; // Axis Identifier
+
+            public void Read( BinaryReader reader )
             {
                 Normal = reader.ReadSourceVec3();
                 Distance = reader.ReadSingle();
                 Type = reader.ReadInt32();
             }
 
-            public readonly Vector3 Normal;
-            public readonly float Distance; // From Origin
-            public readonly int Type; // Axis Identifier
+            public UnityEngine.Plane Convert() => new( Normal, Distance );
         }
 
-        public readonly struct TextureData
+        public struct Vector : ILump
         {
-            public TextureData( BinaryReader reader )
+            public float X, Y, Z;
+
+            public void Read( BinaryReader reader )
+            {
+                X = reader.ReadSingle();
+                Z = reader.ReadSingle();
+                Y = reader.ReadSingle();
+            }
+
+            public Vector3 Convert() => new( X, Y, Z );
+        }
+
+        public struct TextureData : ILump
+        {
+            public Vector3 Reflectivity;
+            public int NameID;
+            public int Width, Height;
+            public int ViewWidth, ViewHeight; // Tf are these for?
+
+            public void Read( BinaryReader reader )
             {
                 Reflectivity = reader.ReadSourceVec3();
                 NameID = reader.ReadInt32();
@@ -142,16 +117,14 @@ namespace Espionage.Engine.Source
                 ViewWidth = reader.ReadInt32();
                 ViewHeight = reader.ReadInt32();
             }
-
-            public readonly Vector3 Reflectivity;
-            public readonly int NameID;
-            public readonly int Width, Height;
-            public readonly int ViewWidth, ViewHeight; // Tf are these for?
         }
 
-        public readonly struct Vis
+        public struct Vis : ILump
         {
-            public Vis( BinaryReader reader )
+            public int NumClusters;
+            public int[,] BytesOf;
+
+            public void Read( BinaryReader reader )
             {
                 NumClusters = reader.ReadInt32();
 
@@ -163,14 +136,16 @@ namespace Espionage.Engine.Source
                     BytesOf[i, 1] = reader.ReadInt32();
                 }
             }
-
-            public readonly int NumClusters;
-            public readonly int[,] BytesOf;
         }
 
-        public readonly struct TextureInfo
+        public struct TextureInfo : ILump
         {
-            public TextureInfo( BinaryReader reader )
+            public float[,] TextureVecs;
+            public float[,] LightmapVecs;
+            public int Flags;
+            public int TexData;
+
+            public void Read( BinaryReader reader )
             {
                 TextureVecs = new float[2, 4];
                 for ( var x = 0; x < 2; x++ )
@@ -185,16 +160,23 @@ namespace Espionage.Engine.Source
                 Flags = reader.ReadInt32();
                 TexData = reader.ReadInt32();
             }
-
-            public readonly float[,] TextureVecs;
-            public readonly float[,] LightmapVecs;
-            public readonly int Flags;
-            public readonly int TexData;
         }
 
-        public readonly struct Node
+        public struct Node : ILump
         {
-            public Node( BinaryReader reader )
+            public int PlaneNum;
+            public int[] Children;
+
+            public short[] Mins;
+            public short[] Maxs;
+
+            public ushort FirstFace;
+            public ushort NumFaces;
+
+            public short Area;
+            public short Padding;
+
+            public void Read( BinaryReader reader )
             {
                 PlaneNum = reader.ReadInt32();
 
@@ -216,35 +198,26 @@ namespace Espionage.Engine.Source
                 Area = reader.ReadInt16();
                 Padding = reader.ReadInt16();
             }
-
-            public readonly int PlaneNum;
-            public readonly int[] Children;
-
-            public readonly short[] Mins;
-            public readonly short[] Maxs;
-
-            public readonly ushort FirstFace;
-            public readonly ushort NumFaces;
-
-            public readonly short Area;
-            public readonly short Padding;
         }
 
-        public readonly struct Edge
+        public struct Edge : ILump
         {
-            public Edge( BinaryReader reader )
+            public ushort[] VertexIndices;
+
+            public void Read( BinaryReader reader )
             {
                 VertexIndices = new ushort[2];
                 VertexIndices[0] = reader.ReadUInt16();
                 VertexIndices[1] = reader.ReadUInt16();
             }
-
-            public readonly ushort[] VertexIndices;
         }
 
-        public readonly struct Cubemap
+        public struct Cubemap : ILump
         {
-            public Cubemap( BinaryReader reader )
+            public Vector3 Origin;
+            public int Size;
+
+            public void Read( BinaryReader reader )
             {
                 // We cant use ReadVec3 here, cause
                 // its actually 3 ints.
@@ -258,14 +231,29 @@ namespace Espionage.Engine.Source
                 var res = reader.ReadInt32();
                 Size = res == 0 ? 256 : res;
             }
-
-            public readonly Vector3 Origin;
-            public readonly int Size;
         }
 
-        public readonly struct Face
+        public struct Face : ILump
         {
-            public Face( BinaryReader reader )
+            public ushort PlaneNum;
+            public byte Side;
+            public bool OnNode;
+            public int FirstEdge;
+            public short NumEdges;
+            public short TexInfo;
+            public short DisplacementInfo;
+            public short SurfaceFogVolumeID;
+            public byte[] Styles;
+            public int LightOffset;
+            public float Area;
+            public int[] LightmapTextureMinsInLuxels;
+            public int[] LightmapTextureSizeInLuxels;
+            public int OriginalFace;
+            public ushort NumPrims;
+            public ushort FirstPrimID;
+            public uint SmoothingGroups;
+
+            public void Read( BinaryReader reader )
             {
                 PlaneNum = reader.ReadUInt16();
                 Side = reader.ReadByte();
@@ -292,24 +280,6 @@ namespace Espionage.Engine.Source
                 FirstPrimID = reader.ReadUInt16();
                 SmoothingGroups = reader.ReadUInt32();
             }
-
-            public readonly ushort PlaneNum;
-            public readonly byte Side;
-            public readonly bool OnNode;
-            public readonly int FirstEdge;
-            public readonly short NumEdges;
-            public readonly short TexInfo;
-            public readonly short DisplacementInfo;
-            public readonly short SurfaceFogVolumeID;
-            public readonly byte[] Styles;
-            public readonly int LightOffset;
-            public readonly float Area;
-            public readonly int[] LightmapTextureMinsInLuxels;
-            public readonly int[] LightmapTextureSizeInLuxels;
-            public readonly int OriginalFace;
-            public readonly ushort NumPrims;
-            public readonly ushort FirstPrimID;
-            public readonly uint SmoothingGroups;
         }
     }
 }

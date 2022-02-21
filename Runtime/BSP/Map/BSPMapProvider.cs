@@ -68,7 +68,7 @@ namespace Espionage.Engine.Source
         public void Shit()
         {
             foreach ( var edge in _bsp.Edges )
-                Gizmos.DrawLine( _bsp.Vertices[edge.VertexIndices[0]] * BSP.Scale, _bsp.Vertices[edge.VertexIndices[1]] * BSP.Scale );
+                Gizmos.DrawLine( _bsp.Vertices[edge.VertexIndices[0]], _bsp.Vertices[edge.VertexIndices[1]] );
         }
 
         public void Load( Action finished )

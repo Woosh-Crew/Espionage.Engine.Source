@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 
-
 namespace Espionage.Engine.Source
 {
     public class BSPReader : IDisposable

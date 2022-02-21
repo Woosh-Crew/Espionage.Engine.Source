@@ -26,10 +26,8 @@ namespace Espionage.Engine.Source
 
             Planes = Reader.Read<Plane>( 1, 20 );
             TextureDatas = Reader.Read<TextureData>( 2, 32 );
-            TextureDatas = Reader.Read<TextureData>( 2, 32 );
+            Vertices = Reader.Read<Vector>( 3, 12 );
 
-            var vertices = Reader.Read<Vector>( 3, 12 );
-            Vertices = vertices.Select( e => e.Convert() ).ToArray();
 
             Edges = Reader.Read<Edge>( 12, 4 );
 
@@ -50,7 +48,7 @@ namespace Espionage.Engine.Source
         public readonly Entity[] Entities; // LUMP 0
         public readonly Plane[] Planes; // LUMP 1
         public readonly TextureData[] TextureDatas; // LUMP 2
-        public readonly Vector3[] Vertices; // LUMP 3
+        public readonly Vector[] Vertices; // LUMP 3
         public readonly Vis[] Visibility; // LUMP 4
         public readonly Node[] Nodes; // LUMP 5
         public readonly TexInfo[] TextureInfos; // LUMP 6
@@ -75,12 +73,12 @@ namespace Espionage.Engine.Source
 
             public void Read( BinaryReader reader )
             {
-                X = reader.ReadSingle();
-                Z = reader.ReadSingle();
-                Y = reader.ReadSingle();
+                X = reader.ReadSingle() * Scale;
+                Z = reader.ReadSingle() * Scale;
+                Y = reader.ReadSingle() * Scale;
             }
 
-            public Vector3 Convert() => new( X, Y, Z );
+            public static implicit operator Vector3( Vector vector ) => new( vector.X, vector.Y, vector.Z );
         }
     }
 }

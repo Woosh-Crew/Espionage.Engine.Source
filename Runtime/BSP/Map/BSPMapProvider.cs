@@ -87,17 +87,16 @@ namespace Espionage.Engine.Source
 
             // Build Mesh
 
-            var combiner = new CombineInstance[BSP.Faces.Length];
+            var combiner = new List<CombineInstance>();
 
             for ( var i = 0; i < BSP.Faces.Length; i++ )
             {
-                var face = BSP.Faces[i];
+                var mesh = MakeFace( BSP.Faces[i] );
 
-                var mesh = MakeFace( face );
                 if ( mesh == null )
                     continue;
 
-                combiner[i] = new CombineInstance() { mesh = mesh, transform = Matrix4x4.identity };
+                combiner.Add( new CombineInstance() { mesh = mesh, transform = Matrix4x4.identity } );
             }
 
             var filter = geoRoot.AddComponent<MeshFilter>();
@@ -105,7 +104,7 @@ namespace Espionage.Engine.Source
             var finalMesh = new Mesh();
             finalMesh.Clear();
 
-            finalMesh.CombineMeshes( combiner );
+            finalMesh.CombineMeshes( combiner.ToArray() );
             finalMesh.Optimize();
             finalMesh.RecalculateBounds();
             finalMesh.RecalculateNormals();
@@ -151,9 +150,6 @@ namespace Espionage.Engine.Source
 
                 var planeNormal = BSP.Planes[face.PlaneNum].Normal;
 
-                // point1 = new Vector3( point1.x, point1.y, point1.z );
-                // point2 = new Vector3( point2.x, point2.y, point2.z );
-
                 if ( BSP.SurfEdges[face.FirstEdge + i] >= 0 )
                 {
                     if ( surfaceVertices.IndexOf( point1 ) < 0 )
@@ -192,126 +188,26 @@ namespace Espionage.Engine.Source
                 }
             }
 
-            /*
-            #region Apply Displacement
-            if (face.dispinfo > -1)
+            //
+            // Triangulate
+            //
+
+            var tris = new List<int>();
+
+            for ( var i = 0; i < originalVertices.Count / 2; i++ )
             {
-                ddispinfo_t disp = bspParser.dispInfo[face.dispinfo];
-                int power = Mathf.RoundToInt(Mathf.Pow(2, disp.power));
+                var first = surfaceVertices.IndexOf( originalVertices[i * 2] );
+                var second = surfaceVertices.IndexOf( originalVertices[i * 2 + 1] );
+                var third = surfaceVertices.IndexOf( originalVertices[0] );
 
-                List<Vector3> dispVertices = new List<Vector3>();
-                Vector3 startingPosition = surfaceVertices[0];
-                Vector3 topCorner = surfaceVertices[1], topRightCorner = surfaceVertices[2], rightCorner = surfaceVertices[3];
-
-                #region Setting Orientation
-                Vector3 dispStartingVertex = disp.startPosition;
-                if (Vector3.Distance(dispStartingVertex, topCorner) < 0.01f)
-                {
-                    Vector3 tempCorner = startingPosition;
-
-                    startingPosition = topCorner;
-                    topCorner = topRightCorner;
-                    topRightCorner = rightCorner;
-                    rightCorner = tempCorner;
-                }
-                else if (Vector3.Distance(dispStartingVertex, rightCorner) < 0.01f)
-                {
-                    Vector3 tempCorner = startingPosition;
-
-                    startingPosition = rightCorner;
-                    rightCorner = topRightCorner;
-                    topRightCorner = topCorner;
-                    topCorner = tempCorner;
-                }
-                else if (Vector3.Distance(dispStartingVertex, topRightCorner) < 0.01f)
-                {
-                    Vector3 tempCorner = startingPosition;
-
-                    startingPosition = topRightCorner;
-                    topRightCorner = tempCorner;
-                    tempCorner = rightCorner;
-                    rightCorner = topCorner;
-                    topCorner = tempCorner;
-                }
-                #endregion
-
-                int orderNum = 0;
-                #region Method 13 (The one and only two)
-                Vector3 leftSide = (topCorner - startingPosition), rightSide = (topRightCorner - rightCorner);
-                float leftSideLineSegmentationDistance = leftSide.magnitude / power, rightSideLineSegmentationDistance = rightSide.magnitude / power;
-                for (int line = 0; line < (power + 1); line++)
-                {
-                    for (int point = 0; point < (power + 1); point++)
-                    {
-                        Vector3 leftPoint = (leftSide.normalized * line * leftSideLineSegmentationDistance) + startingPosition;
-                        Vector3 rightPoint = (rightSide.normalized * line * rightSideLineSegmentationDistance) + rightCorner;
-                        Vector3 currentLine = rightPoint - leftPoint;
-                        Vector3 pointDirection = currentLine.normalized;
-                        float pointSideSegmentationDistance = currentLine.magnitude / power;
-
-                        Vector3 pointA = leftPoint + (pointDirection * pointSideSegmentationDistance * point);
-
-                        Vector3 dispDirectionA = bspParser.dispVerts[disp.DispVertStart + orderNum].vec;
-                        dispVertices.Add(pointA + (dispDirectionA * bspParser.dispVerts[disp.DispVertStart + orderNum].dist));
-                        orderNum++;
-                    }
-                }
-                #endregion
-
-                surfaceVertices = dispVertices;
-            }
-            #endregion
-*/
-
-            #region Triangulate
-
-            var triangleIndices = new List<int>();
-
-            if ( face.DisplacementInfo > -1 )
-            {
-                // ddispinfo_t disp = bspParser.dispInfo[face.dispinfo];
-                // int power = Mathf.RoundToInt(Mathf.Pow(2, disp.power));
-                //
-                // #region Method 12 Triangulation
-                // for (int row = 0; row < power; row++)
-                // {
-                //     for (int col = 0; col < power; col++)
-                //     {
-                //         int currentLine = row * (power + 1);
-                //         int nextLineStart = (row + 1) * (power + 1);
-                //
-                //         triangleIndices.Add(currentLine + col);
-                //         triangleIndices.Add(currentLine + col + 1);
-                //         triangleIndices.Add(nextLineStart + col);
-                //
-                //         triangleIndices.Add(currentLine + col + 1);
-                //         triangleIndices.Add(nextLineStart + col + 1);
-                //         triangleIndices.Add(nextLineStart + col);
-                //     }
-                // }
-                // #endregion
-            }
-            else
-            {
-                for ( var i = 0; i < originalVertices.Count / 2; i++ )
-                {
-                    var firstOrigIndex = i * 2;
-                    var secondOrigIndex = i * 2 + 1;
-                    var thirdOrigIndex = 0;
-
-                    var firstIndex = surfaceVertices.IndexOf( originalVertices[firstOrigIndex] );
-                    var secondIndex = surfaceVertices.IndexOf( originalVertices[secondOrigIndex] );
-                    var thirdIndex = surfaceVertices.IndexOf( originalVertices[thirdOrigIndex] );
-
-                    triangleIndices.Add( firstIndex );
-                    triangleIndices.Add( secondIndex );
-                    triangleIndices.Add( thirdIndex );
-                }
+                tris.Add( first );
+                tris.Add( second );
+                tris.Add( third );
             }
 
-            #endregion
-
-            #region Map UV Points
+            //
+            // Create UVs
+            //
 
             Vector3 s = Vector3.zero, t = Vector3.zero;
             float xOffset = 0;
@@ -337,19 +233,17 @@ namespace Espionage.Engine.Source
                 // Create UV's
                 uvPoints[i] = new Vector2( u, v );
 
-            #endregion
-
-            #region Organize Mesh Data
+            //
+            // Finish
+            // 
 
             var mesh = new Mesh
             {
                 vertices = surfaceVertices.ToArray(),
-                triangles = triangleIndices.ToArray(),
+                triangles = tris.ToArray(),
                 normals = normals.ToArray(),
                 uv = uvPoints
             };
-
-            #endregion
 
             mesh.Optimize();
             mesh.RecalculateTangents();

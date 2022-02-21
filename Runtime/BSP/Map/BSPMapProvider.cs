@@ -106,6 +106,7 @@ namespace Espionage.Engine.Source
             finalMesh.Clear();
 
             finalMesh.CombineMeshes( combiner );
+            finalMesh.Optimize();
             finalMesh.RecalculateBounds();
             finalMesh.RecalculateNormals();
 
@@ -318,21 +319,23 @@ namespace Espionage.Engine.Source
 
             s = new Vector3( BSP.TextureInfo[face.TexInfo].TextureVecs[0][0], BSP.TextureInfo[face.TexInfo].TextureVecs[0][1], BSP.TextureInfo[face.TexInfo].TextureVecs[0][2] );
             t = new Vector3( BSP.TextureInfo[face.TexInfo].TextureVecs[1][0], BSP.TextureInfo[face.TexInfo].TextureVecs[1][1], BSP.TextureInfo[face.TexInfo].TextureVecs[1][2] );
+
             xOffset = BSP.TextureInfo[face.TexInfo].TextureVecs[0][3];
             yOffset = BSP.TextureInfo[face.TexInfo].TextureVecs[1][3];
 
             var uvPoints = new Vector2[surfaceVertices.Count];
-            var textureWidth = 0;
-            var textureHeight = 0;
+            float textureWidth = 0;
+            float textureHeight = 0;
 
             textureWidth = BSP.TextureData[BSP.TextureInfo[face.TexInfo].TexData].Width;
             textureHeight = BSP.TextureData[BSP.TextureInfo[face.TexInfo].TexData].Height;
 
+            var u = 1;
+            var v = 1;
+
             for ( var i = 0; i < uvPoints.Length; i++ )
-                uvPoints[i] = new Vector2( (
-                        Vector3.Dot( surfaceVertices[i], s ) + xOffset ) / textureWidth,
-                    ( textureHeight - ( Vector3.Dot( surfaceVertices[i], t ) + yOffset ) ) / textureHeight
-                ) / BSP.Scale;
+                // Create UV's
+                uvPoints[i] = new Vector2( u, v );
 
             #endregion
 

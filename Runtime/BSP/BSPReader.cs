@@ -15,14 +15,14 @@ namespace Espionage.Engine.Source
             Header = new BSP.Header( reader );
         }
 
-        public void Dispose() { Reader?.Dispose(); }
+        public void Dispose() => Reader?.Dispose();
 
         // Lumps
 
         public T[] Read<T>( int lumpIndex, int size ) where T : ILump, new()
         {
             var lump = Header.Lumps[lumpIndex];
-            
+
             Reader.BaseStream.Seek( lump.Offset, SeekOrigin.Begin );
 
             var final = new T[lump.Length / size];

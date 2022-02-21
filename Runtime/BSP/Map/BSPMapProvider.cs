@@ -49,8 +49,6 @@ namespace Espionage.Engine.Source
 
         public BSP BSP { get; }
 
-        private GameObject _root;
-
         public void Load( Action finished )
         {
             Debugging.Log.Info( $"Loading {BSP.File.Name}, Format {BSP.Reader.Header.Format}, Version {BSP.Reader.Header.Version}" );
@@ -63,7 +61,7 @@ namespace Espionage.Engine.Source
             SceneManager.SetActiveScene( Scene.Value );
 
             // Generate BSP
-            _root = Generate();
+            Generate();
 
             // Finish
             IsLoading = false;
@@ -85,7 +83,9 @@ namespace Espionage.Engine.Source
 
         public GameObject Generate()
         {
-            var root = new GameObject( "Geometry" );
+            var geoRoot = new GameObject( "Geometry" );
+
+            // Build Mesh
 
             var combiner = new CombineInstance[BSP.Faces.Length];
 
@@ -100,7 +100,7 @@ namespace Espionage.Engine.Source
                 combiner[i] = new CombineInstance() { mesh = mesh, transform = Matrix4x4.identity };
             }
 
-            var filter = root.AddComponent<MeshFilter>();
+            var filter = geoRoot.AddComponent<MeshFilter>();
 
             var finalMesh = new Mesh();
             finalMesh.Clear();
@@ -111,9 +111,24 @@ namespace Espionage.Engine.Source
 
             filter.mesh = finalMesh;
 
-            root.AddComponent<MeshRenderer>();
+            geoRoot.AddComponent<MeshRenderer>();
 
-            return root;
+            // Add Cubemaps
+
+            var cubemapRoot = new GameObject( "Cubemaps" );
+
+            foreach ( var item in BSP.Cubemaps )
+            {
+                var go = new GameObject( "Cubemap" );
+                go.transform.parent = cubemapRoot.transform;
+                var probe = go.AddComponent<ReflectionProbe>();
+                probe.refreshMode = ReflectionProbeRefreshMode.ViaScripting;
+                probe.resolution = item.Size;
+                probe.size = Vector3.one * 50;
+                go.transform.position = item.Origin * BSP.Scale;
+            }
+
+            return geoRoot;
         }
 
         public Mesh MakeFace( BSP.Face face )

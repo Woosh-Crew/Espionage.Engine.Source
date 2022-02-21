@@ -22,7 +22,7 @@ namespace Espionage.Engine.Source
                 Origin = new Vector3( x, y, z );
 
                 var res = reader.ReadInt32();
-                Size = res == 0 ? 256 : res;
+                Size = res == 0 ? 64 : res;
             }
         }
     }

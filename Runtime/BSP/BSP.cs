@@ -25,37 +25,39 @@ namespace Espionage.Engine.Source
             Reader = new BSPReader( binaryReader );
 
             Planes = Reader.Read<Plane>( 1, 20 );
-            TextureDatas = Reader.Read<TextureData>( 2, 32 );
+            TextureData = Reader.Read<TexData>( 2, 32 );
             Vertices = Reader.Read<Vector>( 3, 12 );
-
-
+            // Visibility = Reader.Read<Vis>( 4, 12 );
+            Nodes = Reader.Read<Node>( 5, 32 );
+            TextureInfo = Reader.Read<TexInfo>( 6, 72 );
+            Faces = Reader.Read<Face>( 7, 56 );
             Edges = Reader.Read<Edge>( 12, 4 );
+            SurfEdges = Reader.Read( 13, 4, e => e.ReadInt32() );
+            Cubemaps = Reader.Read<Cubemap>( 42, 16 );
 
-            /*
-            Planes = Read( binaryReader, Head.Lumps[1], 20, e => new Plane( e ) );
-            TextureDatas = Read( binaryReader, Head.Lumps[2], 32, e => new TextureData( e ) );
-            Vertices = Read( binaryReader, Head.Lumps[3], 12, e => e.ReadSourceVec3() );
-            // Visibility = Read( reader, Head.Lumps[4], 12, e => new Vis( e ) );
-            Nodes = Read( binaryReader, Head.Lumps[5], 32, e => new Node( e ) );
-            TextureInfos = Read( binaryReader, Head.Lumps[6], 72, e => new TextureInfo( e ) );
-            Faces = Read( binaryReader, Head.Lumps[7], 56, e => new Face( e ) );
-            Edges = Read( binaryReader, Head.Lumps[12], 4, e => new Edge( e ) );
-            SurfEdges = Read( binaryReader, Head.Lumps[13], 4, e => e.ReadInt32() );
-            Cubemaps = Read( binaryReader, Head.Lumps[42], 16, e => new Cubemap( e ) );
-            */
+            TexdataStringTable = Reader.Read( 44, 4, e => e.ReadInt32() );
+        }
+
+        ~BSP()
+        {
+            // I think we have to do this
+            Reader.Dispose();
         }
 
         public readonly Entity[] Entities; // LUMP 0
         public readonly Plane[] Planes; // LUMP 1
-        public readonly TextureData[] TextureDatas; // LUMP 2
+        public readonly TexData[] TextureData; // LUMP 2
         public readonly Vector[] Vertices; // LUMP 3
         public readonly Vis[] Visibility; // LUMP 4
         public readonly Node[] Nodes; // LUMP 5
-        public readonly TexInfo[] TextureInfos; // LUMP 6
+        public readonly TexInfo[] TextureInfo; // LUMP 6
         public readonly Face[] Faces; // LUMP 7
         public readonly Edge[] Edges; // LUMP 12
         public readonly int[] SurfEdges; // LUMP 13
         public readonly Cubemap[] Cubemaps; // LUMP 42
+
+        public readonly int[] TexdataStringTable; // LUMP 44
+        public readonly string[] TexdataStringData; // LUMP 43
 
         //
         // Structs
@@ -65,6 +67,8 @@ namespace Espionage.Engine.Source
         {
             public readonly string ClassName;
             public readonly Dictionary<string, string> KeyValues;
+
+            public readonly string Raw;
         }
 
         public struct Vector : ILump
@@ -79,6 +83,39 @@ namespace Espionage.Engine.Source
             }
 
             public static implicit operator Vector3( Vector vector ) => new( vector.X, vector.Y, vector.Z );
+        }
+
+        public struct DispInfo : ILump
+        {
+            public Vector startPosition; // start position used for orientation
+            public int DispVertStart; // Index into LUMP_DISP_VERTS.
+            public int DispTriStart; // Index into LUMP_DISP_TRIS.
+            public int power; // power - indicates size of surface (2^power	1)
+            public int minTess; // minimum tesselation allowed
+            public float smoothingAngle; // lighting smoothing angle
+            public int contents; // surface contents
+            public ushort MapFace; // Which map face this displacement comes from.
+            public int LightmapAlphaStart; // Index into ddisplightmapalpha.
+            public int LightmapSamplePositionStart; // Index into LUMP_DISP_LIGHTMAP_SAMPLE_POSITIONS.
+            public uint AllowedVerts; // active verticies
+
+            public void Read( BinaryReader reader )
+            {
+                var pos = new Vector();
+                pos.Read( reader );
+                startPosition = pos;
+
+                DispVertStart = reader.ReadInt32();
+                DispTriStart = reader.ReadInt32();
+                power = reader.ReadInt32();
+                minTess = reader.ReadInt32();
+                smoothingAngle = reader.ReadSingle();
+                contents = reader.ReadInt32();
+                MapFace = reader.ReadUInt16();
+                LightmapAlphaStart = reader.ReadInt32();
+                LightmapSamplePositionStart = reader.ReadInt32();
+                AllowedVerts = reader.ReadUInt32();
+            }
         }
     }
 }

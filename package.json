@@ -1,0 +1,18 @@
+{
+  "name": "com.wooshcrew.espionage.engine.source",
+  "version": "0.0.1",
+  "displayName": "Espionage.Engine.Source",
+  "description": "A Module for Espionage.Engine that allows you to open assets relating to the Source Engine",
+  "unity": "2022.1",
+  "unityRelease": "0b1",
+  "dependencies": {
+    "com.wooshcrew.espionage.engine": "https://github.com/Woosh-Crew/Espionage.Engine.git"
+  },
+  "keywords": [
+  ],
+  "author": {
+    "name": "Woosh Crew",
+    "email": "support@wooshcrew.com",
+    "url": "https://www.wooshcrew.com"
+  }
+}

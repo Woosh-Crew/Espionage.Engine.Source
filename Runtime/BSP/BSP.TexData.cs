@@ -5,7 +5,7 @@ namespace Espionage.Engine.Source
 {
     public partial class BSP
     {
-        public struct TextureData : ILump
+        public struct TexData : ILump
         {
             public Vector3 Reflectivity;
             public int NameID;

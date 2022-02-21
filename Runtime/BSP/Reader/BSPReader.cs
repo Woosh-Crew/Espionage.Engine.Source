@@ -34,5 +34,17 @@ namespace Espionage.Engine.Source
 
             return final;
         }
+
+        public T[] Read<T>( int lumpIndex, int size, Func<BinaryReader, T> item )
+        {
+            var lump = Header.Lumps[lumpIndex];
+            Reader.BaseStream.Seek( lump.Offset, SeekOrigin.Begin );
+
+            var final = new T[lump.Length / size];
+            for ( var i = 0; i < lump.Length / size; i++ )
+                final[i] = item.Invoke( Reader );
+
+            return final;
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -14,7 +15,7 @@ namespace Espionage.Engine.Source
 
         public BSP( FileInfo info )
         {
-            if ( info.Extension != "bsp" )
+            if ( info.Extension != ".bsp" )
                 throw new FileLoadException( "Invalid Extension" );
 
             File = info;
@@ -28,26 +29,7 @@ namespace Espionage.Engine.Source
 
             Reader = new BSPReader( binaryReader );
 
-            Entities = Reader.Read( 0, ( reader, lump ) =>
-            {
-                var raw = reader.ReadBytes( lump.Length );
-                var table = Encoding.UTF8.GetString( raw );
-
-                // Separate Entities by the { } token
-                var ents = table.Split( '{', StringSplitOptions.RemoveEmptyEntries );
-
-                var entities = new Entity[ents.Length];
-
-                for ( var i = 0; i < entities.Length; i++ )
-                {
-                    ents[i] = ents[i].Trim( '{', '}', '\n' );
-
-                    var entity = new Entity( ents[i] );
-                    entities[i] = entity;
-                }
-
-                return entities;
-            } );
+            Entities = Reader.Read( 0, ReadEntities );
 
             Planes = Reader.Read<Plane>( 1, 20 );
             TextureData = Reader.Read<TexData>( 2, 32 );
@@ -77,7 +59,6 @@ namespace Espionage.Engine.Source
             Reader.Dispose();
         }
 
-        public Entity[] Entities; // LUMP 0
         public Plane[] Planes; // LUMP 1
         public TexData[] TextureData; // LUMP 2
         public Vector[] Vertices; // LUMP 3
@@ -95,7 +76,57 @@ namespace Espionage.Engine.Source
 
         public Cubemap[] Cubemaps; // LUMP 42
 
-        public int[] TexdataStringTable; // LUMP 44
         public string[] TexdataStringData; // LUMP 43
+        public int[] TexdataStringTable; // LUMP 44
+
+        //
+        // Entities
+        //
+
+        public Entity[] Entities; // LUMP 0
+
+        private Entity[] ReadEntities( BinaryReader reader, Header.Lump lump )
+        {
+            var raw = reader.ReadBytes( lump.Length );
+            var table = Encoding.UTF8.GetString( raw ).ToCharArray();
+
+            var insideScope = false;
+            var entities = new List<Entity>();
+            var builder = new StringBuilder();
+
+            for ( var i = 0; i < table.Length; i++ )
+            {
+                var character = table[i];
+
+                // Start of Entity Scope
+                if ( character == '{' && !insideScope )
+                {
+                    // Skip the \n
+                    i++;
+                    insideScope = true;
+
+                    continue;
+                }
+
+                // End of Entity Scope
+                if ( character == '}' && insideScope )
+                {
+                    insideScope = false;
+
+                    // Jake: For some dumb ass reason I have to trim the end
+                    // because theres a \n ? makes no sense...
+                    entities.Add( new Entity( builder.ToString().TrimEnd( '\n' ) ) );
+                    builder = new StringBuilder();
+
+                    i++;
+
+                    continue;
+                }
+
+                builder.Append( table[i] );
+            }
+
+            return entities.ToArray();
+        }
     }
 }

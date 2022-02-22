@@ -5,12 +5,33 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using Espionage.Engine.Resources;
+using UnityEditor;
 
 namespace Espionage.Engine.Source
 {
     [Library, Title( "BSP Map" ), Group( "Maps" ), File( Extension = "bsp", Serialization = "Binary" )]
     public class BSPMapProvider : IMapProvider
     {
+    #if UNITY_EDITOR
+
+        [MenuItem( "Tools/Espionage.Engine/Source/Load BSP" )]
+        private static void LoadBSP()
+        {
+            var path = EditorUtility.OpenFilePanel( "Load .bsp File", "", "bsp" );
+
+            if ( string.IsNullOrEmpty( path ) )
+            {
+                Debugging.Log.Info( "No Map Selected" );
+                return;
+            }
+
+            var bsp = new BSP( new FileInfo( path ) );
+            new Map( new BSPMapProvider( bsp ) ).Load();
+        }
+
+
+    #endif
+
         // Id
         public string Identifier => BSP.File.FullName;
 
@@ -31,7 +52,9 @@ namespace Espionage.Engine.Source
 
         public void Load( Action finished )
         {
-            Debugging.Log.Info( $"Loading {BSP.File.Name}, Format {BSP.Reader.Header.Format}, Version {BSP.Reader.Header.Version}" );
+            BSP.Load();
+
+            using var _ = Debugging.Stopwatch( $"Loading {BSP.File.Name}, Format {BSP.Reader.Header.Format}, Version {BSP.Reader.Header.Version}" );
 
             // Start
             IsLoading = true;
@@ -42,6 +65,7 @@ namespace Espionage.Engine.Source
 
             // Generate BSP
             Generate();
+            SpawnEntities();
 
             // Finish
             IsLoading = false;
@@ -59,7 +83,9 @@ namespace Espionage.Engine.Source
             finished?.Invoke();
         }
 
+        //
         // BSP Generator
+        //
 
         public void Generate()
         {
@@ -67,15 +93,22 @@ namespace Espionage.Engine.Source
 
             // Build Mesh
 
-            var combiner = new List<CombineInstance>();
-
+            var combiner = new List<CombineInstance>[BSP.TexdataStringTable.Length];
 
             for ( var i = 0; i < BSP.Faces.Length; i++ )
             {
                 var face = BSP.Faces[i];
+                var id = BSP.TextureData[BSP.TextureInfo[face.TexInfo].TexData].NameID;
 
+                // This is fucking stupid
                 var flags = BSP.TextureInfo[face.TexInfo].Flags;
-                if ( flags.HasFlag( BSP.TexInfo.Flag.Nodraw ) || flags.HasFlag( BSP.TexInfo.Flag.Trigger ) || flags.HasFlag( BSP.TexInfo.Flag.Sky ) || flags.HasFlag( BSP.TexInfo.Flag.Hitbox ) )
+                if ( flags.HasFlag( BSP.TexInfo.Flag.Nodraw ) ||
+                     flags.HasFlag( BSP.TexInfo.Flag.Trigger ) ||
+                     flags.HasFlag( BSP.TexInfo.Flag.Sky ) ||
+                     flags.HasFlag( BSP.TexInfo.Flag.Hitbox ) ||
+                     flags.HasFlag( BSP.TexInfo.Flag.Hint ) ||
+                     flags.HasFlag( BSP.TexInfo.Flag.Sky2D )
+                   )
                     continue;
 
                 var mesh = face.DisplacementInfo != -1 ? MakeDisplacement( face ) : MakeFace( face );
@@ -83,25 +116,32 @@ namespace Espionage.Engine.Source
                 if ( mesh == null )
                     continue;
 
-                combiner.Add( new CombineInstance() { mesh = mesh, transform = Matrix4x4.identity } );
+                combiner[id] ??= new List<CombineInstance>();
+                combiner[id].Add( new CombineInstance() { mesh = mesh, transform = Matrix4x4.identity } );
             }
 
+            for ( var i = 0; i < combiner.Length; i++ )
             {
+                var instance = combiner[i];
+
+                if ( instance == null )
+                    continue;
+
                 // Create Mesh
 
                 var finalMesh = new Mesh()
                 {
-                    name = $"Map"
+                    name = $"Map - {i}"
                 };
 
-                finalMesh.CombineMeshes( combiner.ToArray() );
+                finalMesh.CombineMeshes( instance.ToArray() );
                 finalMesh.Optimize();
 
                 finalMesh.RecalculateBounds();
                 finalMesh.RecalculateNormals();
 
                 // Create Object
-                var go = new GameObject( $"Map" );
+                var go = new GameObject( $"Map [{i}]" );
                 var renderer = go.AddComponent<MeshRenderer>();
                 renderer.shadowCastingMode = ShadowCastingMode.TwoSided;
 
@@ -227,6 +267,16 @@ namespace Espionage.Engine.Source
         {
             var displacement = BSP.DisplacementInfo[face.DisplacementInfo];
 
+            for ( var i = 0; i < face.NumEdges; i++ )
+            {
+                var currentEdge = BSP.Edges[Mathf.Abs( BSP.SurfEdges[face.FirstEdge + i] )].VertexIndices;
+
+                Vector3 point1 = BSP.Vertices[currentEdge[0]];
+                Vector3 point2 = BSP.Vertices[currentEdge[1]];
+
+                var planeNormal = BSP.Planes[face.PlaneNum].Normal;
+            }
+
             return null;
         }
 
@@ -260,6 +310,17 @@ namespace Espionage.Engine.Source
             }
 
             return ( uvPoints, uv2Points );
+        }
+
+        //
+        // Entity Generator
+        //
+
+        public void SpawnEntities()
+        {
+            foreach ( var entity in BSP.Entities )
+                if ( entity.KeyValues.ContainsKey( "origin" ) )
+                    GameObject.CreatePrimitive( PrimitiveType.Cube ).transform.position = BSP.Vector.Parse( entity.KeyValues["origin"] );
         }
     }
 }

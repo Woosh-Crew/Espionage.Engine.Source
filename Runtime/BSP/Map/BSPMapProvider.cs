@@ -89,6 +89,7 @@ namespace Espionage.Engine.Source
 
             var combiner = new List<CombineInstance>();
 
+
             for ( var i = 0; i < BSP.Faces.Length; i++ )
             {
                 var face = BSP.Faces[i];
@@ -105,19 +106,30 @@ namespace Espionage.Engine.Source
                 combiner.Add( new CombineInstance() { mesh = mesh, transform = Matrix4x4.identity } );
             }
 
-            var filter = geoRoot.AddComponent<MeshFilter>();
 
-            var finalMesh = new Mesh();
-            finalMesh.Clear();
+            {
+                // Create Mesh
 
-            finalMesh.CombineMeshes( combiner.ToArray() );
-            finalMesh.Optimize();
-            finalMesh.RecalculateBounds();
-            finalMesh.RecalculateNormals();
+                var finalMesh = new Mesh()
+                {
+                    name = $"Map"
+                };
 
-            filter.mesh = finalMesh;
+                finalMesh.CombineMeshes( combiner.ToArray() );
+                finalMesh.Optimize();
 
-            geoRoot.AddComponent<MeshRenderer>();
+                finalMesh.RecalculateBounds();
+                finalMesh.RecalculateNormals();
+
+                // Create Object
+                var go = new GameObject( $"Map" );
+                go.AddComponent<MeshRenderer>();
+
+                var filter = go.AddComponent<MeshFilter>();
+                filter.mesh = finalMesh;
+
+                go.transform.parent = geoRoot.transform;
+            }
 
             // Add Cubemaps
 
@@ -126,11 +138,13 @@ namespace Espionage.Engine.Source
             foreach ( var item in BSP.Cubemaps )
             {
                 var go = new GameObject( "Cubemap" );
-                go.transform.parent = cubemapRoot.transform;
+
                 var probe = go.AddComponent<ReflectionProbe>();
                 probe.refreshMode = ReflectionProbeRefreshMode.ViaScripting;
                 probe.resolution = item.Size;
                 probe.size = Vector3.one * 50;
+
+                go.transform.parent = cubemapRoot.transform;
                 go.transform.position = item.Origin * BSP.Scale;
             }
 
@@ -213,7 +227,7 @@ namespace Espionage.Engine.Source
 
             var texInfo = BSP.TextureInfo[face.TexInfo];
             var texData = BSP.TextureData[BSP.TextureInfo[face.TexInfo].TexData];
-            
+
             var texVec = texInfo.TextureVecs;
             var lightmapVec = texInfo.LightmapVecs;
 
@@ -229,12 +243,12 @@ namespace Espionage.Engine.Source
 
                 uvPoints[i] = new Vector2(
                     ( texVec[0][0] * vert.x + -texVec[0][2] * vert.y + texVec[0][1] * vert.z + texVec[0][3] ) / textureWidth,
-                    ( texVec[1][0] * vert.x + -texVec[1][2] * vert.y + texVec[1][1] * vert.z + texVec[0][3] ) / textureWidth
+                    ( texVec[1][0] * vert.x + -texVec[1][2] * vert.y + texVec[1][1] * vert.z + texVec[0][3] ) / textureHeight
                 );
 
                 uv2Points[i] = new Vector2(
                     lightmapVec[0][0] * vert.x + -lightmapVec[0][2] * vert.y + lightmapVec[0][1] * vert.z + lightmapVec[0][3] - face.LightmapTextureMinsInLuxels[0],
-                    lightmapVec[1][0] * vert.x + -lightmapVec[1][2] * vert.y + lightmapVec[1][1] * vert.z + lightmapVec[0][3] - face.LightmapTextureMinsInLuxels[0]
+                    lightmapVec[1][0] * vert.x + -lightmapVec[1][2] * vert.y + lightmapVec[1][1] * vert.z + lightmapVec[0][3] - face.LightmapTextureMinsInLuxels[1]
                 );
             }
 
@@ -245,11 +259,11 @@ namespace Espionage.Engine.Source
 
             var mesh = new Mesh
             {
-                name = "Map",
                 vertices = surfaceVertices.ToArray(),
                 triangles = tris.ToArray(),
                 normals = normals.ToArray(),
-                uv = uvPoints
+                uv = uvPoints,
+                uv2 = uv2Points
             };
 
             mesh.Optimize();

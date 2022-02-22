@@ -81,9 +81,9 @@ namespace Espionage.Engine.Source
 
         // BSP Generator
 
-        public GameObject Generate()
+        public void Generate()
         {
-            var geoRoot = new GameObject( "Geometry" );
+            var root = new GameObject( "Geometry" );
 
             // Build Mesh
 
@@ -127,7 +127,7 @@ namespace Espionage.Engine.Source
                 var filter = go.AddComponent<MeshFilter>();
                 filter.mesh = finalMesh;
 
-                go.transform.parent = geoRoot.transform;
+                go.transform.parent = root.transform;
             }
 
             // Add Cubemaps
@@ -146,8 +146,6 @@ namespace Espionage.Engine.Source
                 go.transform.parent = cubemapRoot.transform;
                 go.transform.position = item.Origin * BSP.Scale;
             }
-
-            return geoRoot;
         }
 
         public Mesh MakeFace( BSP.Face face )
@@ -221,9 +219,35 @@ namespace Espionage.Engine.Source
             }
 
             //
-            // Create UVs
-            //
+            // Finish
+            // 
 
+            var (texture, lightmaps) = GenerateUVs( face, surfaceVertices );
+
+            var mesh = new Mesh
+            {
+                vertices = surfaceVertices.ToArray(),
+                triangles = tris.ToArray(),
+                normals = normals.ToArray(),
+                uv = texture,
+                uv2 = lightmaps
+            };
+
+            mesh.Optimize();
+            mesh.RecalculateTangents();
+
+            return mesh;
+        }
+
+        public Mesh MakeDisplacement( BSP.Face face )
+        {
+            var displacement = BSP.DisplacementInfo[face.DisplacementInfo];
+
+            return null;
+        }
+
+        public (Vector2[] uv1, Vector2[] uv2) GenerateUVs( BSP.Face face, List<Vector3> surfaceVertices )
+        {
             var texInfo = BSP.TextureInfo[face.TexInfo];
             var texData = BSP.TextureData[BSP.TextureInfo[face.TexInfo].TexData];
 
@@ -251,26 +275,7 @@ namespace Espionage.Engine.Source
                 );
             }
 
-
-            //
-            // Finish
-            // 
-
-            var mesh = new Mesh
-            {
-                vertices = surfaceVertices.ToArray(),
-                triangles = tris.ToArray(),
-                normals = normals.ToArray(),
-                uv = uvPoints,
-                uv2 = uv2Points
-            };
-
-            mesh.Optimize();
-            mesh.RecalculateTangents();
-
-            return mesh;
+            return ( uvPoints, uv2Points );
         }
-
-        public Mesh MakeDisplacement( BSP.Face face ) => null;
     }
 }

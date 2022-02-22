@@ -227,8 +227,8 @@ namespace Espionage.Engine.Source
 
             for ( var i = 0; i < uvPoints.Length; i++ )
                 uvPoints[i] = new Vector2(
-                    Vector3.Dot( surfaceVertices[i], sVector ) + xOffset,
-                    Vector3.Dot( surfaceVertices[i], tVector ) + yOffset
+                    ( Vector3.Dot( surfaceVertices[i], sVector ) + xOffset ) / textureWidth,
+                    ( Vector3.Dot( surfaceVertices[i], tVector ) + yOffset ) / textureHeight
                 );
 
             //

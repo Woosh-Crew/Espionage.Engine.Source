@@ -7,7 +7,7 @@ namespace Espionage.Engine.Source
     /// <summary>Deserialized BSP Data</summary>
     public partial class BSP
     {
-        public const float Scale = 0.0333f;
+        public const float Scale = 0.01905f;
 
         public FileInfo File { get; }
         public BSPReader Reader { get; }

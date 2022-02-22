@@ -213,10 +213,13 @@ namespace Espionage.Engine.Source
 
             var texInfo = BSP.TextureInfo[face.TexInfo];
             var texData = BSP.TextureData[BSP.TextureInfo[face.TexInfo].TexData];
-
+            
             var texVec = texInfo.TextureVecs;
+            var lightmapVec = texInfo.LightmapVecs;
 
             var uvPoints = new Vector2[surfaceVertices.Count];
+            var uv2Points = new Vector2[surfaceVertices.Count];
+
             var textureWidth = texData.Width * BSP.Scale;
             var textureHeight = texData.Height * BSP.Scale;
 
@@ -225,8 +228,13 @@ namespace Espionage.Engine.Source
                 var vert = surfaceVertices[i];
 
                 uvPoints[i] = new Vector2(
-                    ( texVec[0][0] * vert.x + texVec[0][2] * vert.y + texVec[0][1] * vert.z + texVec[0][3] ) / textureWidth,
-                    ( texVec[1][0] * vert.x + texVec[1][2] * vert.y + texVec[1][1] * vert.z + texVec[0][3] ) / textureWidth
+                    ( texVec[0][0] * vert.x + -texVec[0][2] * vert.y + texVec[0][1] * vert.z + texVec[0][3] ) / textureWidth,
+                    ( texVec[1][0] * vert.x + -texVec[1][2] * vert.y + texVec[1][1] * vert.z + texVec[0][3] ) / textureWidth
+                );
+
+                uv2Points[i] = new Vector2(
+                    lightmapVec[0][0] * vert.x + -lightmapVec[0][2] * vert.y + lightmapVec[0][1] * vert.z + lightmapVec[0][3] - face.LightmapTextureMinsInLuxels[0],
+                    lightmapVec[1][0] * vert.x + -lightmapVec[1][2] * vert.y + lightmapVec[1][1] * vert.z + lightmapVec[0][3] - face.LightmapTextureMinsInLuxels[0]
                 );
             }
 

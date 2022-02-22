@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
@@ -64,7 +65,7 @@ namespace Espionage.Engine.Source
             SceneManager.SetActiveScene( Scene.Value );
 
             // Generate BSP
-            Generate( BSP.Models[0] /* World Mesh */ );
+            Generate( BSP.Models[0] /* World Mesh */ ).name = "World";
             SpawnEntities();
 
             // Finish
@@ -321,6 +322,18 @@ namespace Espionage.Engine.Source
 
         public void SpawnEntities()
         {
+            var sun = BSP.Entities.FirstOrDefault( e => e.KeyValues["classname"] == "light_environment" );
+
+            // Make Sun
+            var sunGo = new GameObject().AddComponent<Light>();
+            sunGo.transform.rotation = Quaternion.Euler( BSP.Vector.Parse( sun.KeyValues["angles"] ) );
+            sunGo.type = LightType.Directional;
+
+            var split = sun.KeyValues["_light"].Split( " " );
+
+            sunGo.color = new Color32( byte.Parse( split[0] ), byte.Parse( split[1] ), byte.Parse( split[2] ), 1 );
+
+            // Generate Models for Entities
             foreach ( var entity in BSP.Entities )
             {
                 if ( !entity.KeyValues.ContainsKey( "origin" ) )
@@ -331,6 +344,8 @@ namespace Espionage.Engine.Source
                     // Make the Mesh
                     var index = int.Parse( value.Substring( 1 ) );
                     var obj = Generate( BSP.Models[index] );
+
+                    obj.name = entity.KeyValues.ContainsKey( "targetname" ) ? entity.KeyValues["targetname"] : entity.KeyValues["classname"];
 
                     obj.transform.position = BSP.Vector.Parse( entity.KeyValues["origin"] );
                 }

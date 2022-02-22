@@ -91,7 +91,13 @@ namespace Espionage.Engine.Source
 
             for ( var i = 0; i < BSP.Faces.Length; i++ )
             {
-                var mesh = MakeFace( BSP.Faces[i] );
+                var face = BSP.Faces[i];
+
+                var flags = BSP.TextureInfo[face.TexInfo].Flags;
+                if ( flags.HasFlag( BSP.TexInfo.Flag.Nodraw ) || flags.HasFlag( BSP.TexInfo.Flag.Trigger ) || flags.HasFlag( BSP.TexInfo.Flag.Sky ) || flags.HasFlag( BSP.TexInfo.Flag.Hitbox ) )
+                    continue;
+
+                var mesh = face.DisplacementInfo != -1 ? MakeDisplacement( face ) : MakeFace( face );
 
                 if ( mesh == null )
                     continue;
@@ -133,10 +139,6 @@ namespace Espionage.Engine.Source
 
         public Mesh MakeFace( BSP.Face face )
         {
-            var flags = BSP.TextureInfo[face.TexInfo].Flags;
-            if ( flags.HasFlag( BSP.TexInfo.Flag.Nodraw ) || flags.HasFlag( BSP.TexInfo.Flag.Trigger ) || flags.HasFlag( BSP.TexInfo.Flag.Sky ) || flags.HasFlag( BSP.TexInfo.Flag.Hitbox ) )
-                return null;
-
             var surfaceVertices = new List<Vector3>();
             var originalVertices = new List<Vector3>();
             var normals = new List<Vector3>();
@@ -209,29 +211,25 @@ namespace Espionage.Engine.Source
             // Create UVs
             //
 
-            Vector3 s = Vector3.zero, t = Vector3.zero;
-            float xOffset = 0;
-            float yOffset = 0;
+            var texInfo = BSP.TextureInfo[face.TexInfo];
+            var texData = BSP.TextureData[BSP.TextureInfo[face.TexInfo].TexData];
 
-            s = new Vector3( BSP.TextureInfo[face.TexInfo].TextureVecs[0][0], BSP.TextureInfo[face.TexInfo].TextureVecs[0][1], BSP.TextureInfo[face.TexInfo].TextureVecs[0][2] );
-            t = new Vector3( BSP.TextureInfo[face.TexInfo].TextureVecs[1][0], BSP.TextureInfo[face.TexInfo].TextureVecs[1][1], BSP.TextureInfo[face.TexInfo].TextureVecs[1][2] );
+            var sVector = new Vector3( texInfo.TextureVecs[0][0], texInfo.TextureVecs[0][1], texInfo.TextureVecs[0][2] );
+            var tVector = new Vector3( texInfo.TextureVecs[1][0], texInfo.TextureVecs[1][1], texInfo.TextureVecs[1][2] );
 
-            xOffset = BSP.TextureInfo[face.TexInfo].TextureVecs[0][3];
-            yOffset = BSP.TextureInfo[face.TexInfo].TextureVecs[1][3];
+            var xOffset = texInfo.TextureVecs[0][3];
+            var yOffset = texInfo.TextureVecs[1][3];
 
             var uvPoints = new Vector2[surfaceVertices.Count];
-            float textureWidth = 0;
-            float textureHeight = 0;
 
-            textureWidth = BSP.TextureData[BSP.TextureInfo[face.TexInfo].TexData].Width;
-            textureHeight = BSP.TextureData[BSP.TextureInfo[face.TexInfo].TexData].Height;
-
-            var u = 1;
-            var v = 1;
+            var textureWidth = texData.Width * BSP.Scale;
+            var textureHeight = texData.Height * BSP.Scale;
 
             for ( var i = 0; i < uvPoints.Length; i++ )
-                // Create UV's
-                uvPoints[i] = new Vector2( u, v );
+                uvPoints[i] = new Vector2(
+                    Vector3.Dot( surfaceVertices[i], sVector ) + xOffset,
+                    Vector3.Dot( surfaceVertices[i], tVector ) + yOffset
+                );
 
             //
             // Finish
@@ -239,6 +237,7 @@ namespace Espionage.Engine.Source
 
             var mesh = new Mesh
             {
+                name = "Map",
                 vertices = surfaceVertices.ToArray(),
                 triangles = tris.ToArray(),
                 normals = normals.ToArray(),
@@ -250,5 +249,7 @@ namespace Espionage.Engine.Source
 
             return mesh;
         }
+
+        public Mesh MakeDisplacement( BSP.Face face ) => null;
     }
 }

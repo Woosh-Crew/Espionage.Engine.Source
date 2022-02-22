@@ -122,10 +122,14 @@ namespace Espionage.Engine.Source
 
                 // Create Object
                 var go = new GameObject( $"Map" );
-                go.AddComponent<MeshRenderer>();
+                var renderer = go.AddComponent<MeshRenderer>();
+                renderer.shadowCastingMode = ShadowCastingMode.TwoSided;
 
                 var filter = go.AddComponent<MeshFilter>();
-                filter.mesh = finalMesh;
+                filter.sharedMesh = finalMesh;
+
+                var collider = go.AddComponent<MeshCollider>();
+                collider.sharedMesh = finalMesh;
 
                 go.transform.parent = root.transform;
             }

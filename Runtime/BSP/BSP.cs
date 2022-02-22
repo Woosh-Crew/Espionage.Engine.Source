@@ -44,6 +44,7 @@ namespace Espionage.Engine.Source
 
             Edges = Reader.Read<Edge>( 12, 4 );
             SurfEdges = Reader.Read( 13, 4, e => e.ReadInt32() );
+            Models = Reader.Read<Model>( 14, 48 );
 
             DisplacementInfo = Reader.Read<DispInfo>( 26, 176 );
             DisplacementVerts = Reader.Read<DispVert>( 33, 20 );
@@ -70,6 +71,7 @@ namespace Espionage.Engine.Source
         public Leaf[] Leafs; // LUMP 10
         public Edge[] Edges; // LUMP 12
         public int[] SurfEdges; // LUMP 13
+        public Model[] Models; // LUMP 14
         public DispInfo[] DisplacementInfo; // LUMP 26
 
         public DispVert[] DisplacementVerts; // LUMP 33

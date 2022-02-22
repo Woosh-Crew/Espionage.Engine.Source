@@ -17,6 +17,13 @@ namespace Espionage.Engine.Source
                 Y = reader.ReadSingle() * Scale;
             }
 
+            public static Vector Parse( BinaryReader reader ) => new()
+            {
+                X = reader.ReadSingle() * Scale,
+                Y = reader.ReadSingle() * Scale,
+                Z = reader.ReadSingle() * Scale
+            };
+
             public static Vector Parse( string value )
             {
                 var split = value.Split( " " );

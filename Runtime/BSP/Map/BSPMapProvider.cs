@@ -214,22 +214,22 @@ namespace Espionage.Engine.Source
             var texInfo = BSP.TextureInfo[face.TexInfo];
             var texData = BSP.TextureData[BSP.TextureInfo[face.TexInfo].TexData];
 
-            var sVector = new Vector3( texInfo.TextureVecs[0][0], texInfo.TextureVecs[0][1], texInfo.TextureVecs[0][2] );
-            var tVector = new Vector3( texInfo.TextureVecs[1][0], texInfo.TextureVecs[1][1], texInfo.TextureVecs[1][2] );
-
-            var xOffset = texInfo.TextureVecs[0][3];
-            var yOffset = texInfo.TextureVecs[1][3];
+            var texVec = texInfo.TextureVecs;
 
             var uvPoints = new Vector2[surfaceVertices.Count];
-
             var textureWidth = texData.Width * BSP.Scale;
             var textureHeight = texData.Height * BSP.Scale;
 
             for ( var i = 0; i < uvPoints.Length; i++ )
+            {
+                var vert = surfaceVertices[i];
+
                 uvPoints[i] = new Vector2(
-                    ( Vector3.Dot( surfaceVertices[i], sVector ) + xOffset ) / textureWidth,
-                    ( Vector3.Dot( surfaceVertices[i], tVector ) + yOffset ) / textureHeight
+                    ( texVec[0][0] * vert.x + texVec[0][2] * vert.y + texVec[0][1] * vert.z + texVec[0][3] ) / textureWidth,
+                    ( texVec[1][0] * vert.x + texVec[1][2] * vert.y + texVec[1][1] * vert.z + texVec[0][3] ) / textureWidth
                 );
+            }
+
 
             //
             // Finish

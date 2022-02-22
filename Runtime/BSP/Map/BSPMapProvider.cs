@@ -106,7 +106,6 @@ namespace Espionage.Engine.Source
                 combiner.Add( new CombineInstance() { mesh = mesh, transform = Matrix4x4.identity } );
             }
 
-
             {
                 // Create Mesh
 

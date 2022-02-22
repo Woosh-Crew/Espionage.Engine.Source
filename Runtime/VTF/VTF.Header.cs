@@ -23,7 +23,12 @@ namespace Espionage.Engine.Source
                 Height = reader.ReadUInt16();
 
                 Flags = (Flags) reader.ReadUInt32();
+
+                Frames = reader.ReadUInt16();
+                FirstFrame = reader.ReadUInt16();
             }
+
+            public bool IsVersion( int major, int minor ) => Version[0] == major && Version[1] == minor;
 
             public readonly byte[] Indent;
             public readonly uint[] Version;
@@ -33,6 +38,9 @@ namespace Espionage.Engine.Source
             public readonly ushort Height;
 
             public readonly Flags Flags;
+
+            public readonly ushort Frames;
+            public readonly ushort FirstFrame;
         }
     }
 }

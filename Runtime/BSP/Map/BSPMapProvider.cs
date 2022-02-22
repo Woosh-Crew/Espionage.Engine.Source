@@ -64,7 +64,7 @@ namespace Espionage.Engine.Source
             SceneManager.SetActiveScene( Scene.Value );
 
             // Generate BSP
-            Generate();
+            Generate( BSP.Models[0] /* World Mesh */ );
             SpawnEntities();
 
             // Finish
@@ -87,7 +87,7 @@ namespace Espionage.Engine.Source
         // BSP Generator
         //
 
-        public void Generate()
+        public GameObject Generate( BSP.Model model )
         {
             var root = new GameObject( "Geometry" );
 
@@ -95,9 +95,9 @@ namespace Espionage.Engine.Source
 
             var combiner = new List<CombineInstance>[BSP.TexdataStringTable.Length];
 
-            for ( var i = 0; i < BSP.Faces.Length; i++ )
+            for ( var i = 0; i < model.NumFaces; i++ )
             {
-                var face = BSP.Faces[i];
+                var face = BSP.Faces[model.FirstFace + i];
                 var id = BSP.TextureData[BSP.TextureInfo[face.TexInfo].TexData].NameID;
 
                 // This is fucking stupid
@@ -154,22 +154,7 @@ namespace Espionage.Engine.Source
                 go.transform.parent = root.transform;
             }
 
-            // Add Cubemaps
-
-            var cubemapRoot = new GameObject( "Cubemaps" );
-
-            foreach ( var item in BSP.Cubemaps )
-            {
-                var go = new GameObject( "Cubemap" );
-
-                var probe = go.AddComponent<ReflectionProbe>();
-                probe.refreshMode = ReflectionProbeRefreshMode.ViaScripting;
-                probe.resolution = item.Size;
-                probe.size = Vector3.one * 50;
-
-                go.transform.parent = cubemapRoot.transform;
-                go.transform.position = item.Origin * BSP.Scale;
-            }
+            return root;
         }
 
         public Mesh MakeFace( BSP.Face face )
@@ -313,14 +298,43 @@ namespace Espionage.Engine.Source
         }
 
         //
+        // Lighting & Rendering
+        //
+
+        public GameObject MakeCubemap( BSP.Cubemap cubemap )
+        {
+            var go = new GameObject( "Cubemap" );
+
+            var probe = go.AddComponent<ReflectionProbe>();
+            probe.refreshMode = ReflectionProbeRefreshMode.ViaScripting;
+            probe.resolution = cubemap.Size;
+            probe.size = Vector3.one * 50;
+
+            go.transform.position = cubemap.Origin * BSP.Scale;
+
+            return go;
+        }
+
+        //
         // Entity Generator
         //
 
         public void SpawnEntities()
         {
             foreach ( var entity in BSP.Entities )
-                if ( entity.KeyValues.ContainsKey( "origin" ) )
-                    GameObject.CreatePrimitive( PrimitiveType.Cube ).transform.position = BSP.Vector.Parse( entity.KeyValues["origin"] );
+            {
+                if ( !entity.KeyValues.ContainsKey( "origin" ) )
+                    continue;
+
+                if ( entity.KeyValues.TryGetValue( "model", out var value ) && value.StartsWith( "*" ) )
+                {
+                    // Make the Mesh
+                    var index = int.Parse( value.Substring( 1 ) );
+                    var obj = Generate( BSP.Models[index] );
+
+                    obj.transform.position = BSP.Vector.Parse( entity.KeyValues["origin"] );
+                }
+            }
         }
     }
 }

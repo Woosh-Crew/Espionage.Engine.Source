@@ -311,6 +311,60 @@ namespace Espionage.Engine.Source
             var displacement = BSP.DisplacementInfo[face.DisplacementInfo];
             var subdivision = Mathf.Pow( 2, displacement.Power );
 
+            Debugging.Log.Info( face.NumEdges );
+
+            for ( var i = 0; i < face.NumEdges; i++ )
+            {
+                var currentEdge = BSP.Edges[Mathf.Abs( BSP.SurfEdges[face.FirstEdge + i] )].VertexIndices;
+
+                Vector3 point1 = BSP.Vertices[currentEdge[0]];
+                Vector3 point2 = BSP.Vertices[currentEdge[1]];
+
+                var normal = BSP.Planes[face.PlaneNum].Normal;
+
+                if ( BSP.SurfEdges[face.FirstEdge + i] >= 0 )
+                {
+                    originalVertices.Add( point1 );
+                    originalVertices.Add( point2 );
+
+                    if ( !surfaceVertices.Contains( point1 ) )
+                    {
+                        surfaceVertices.Add( point1 );
+                        normals.Add( normal );
+                    }
+
+                    if ( !surfaceVertices.Contains( point2 ) )
+                    {
+                        surfaceVertices.Add( point2 );
+                        normals.Add( normal );
+                    }
+                }
+                else
+                {
+                    originalVertices.Add( point2 );
+                    originalVertices.Add( point1 );
+
+                    if ( surfaceVertices.IndexOf( point2 ) < 0 )
+                    {
+                        surfaceVertices.Add( point2 );
+                        normals.Add( normal );
+                    }
+
+
+                    if ( surfaceVertices.IndexOf( point1 ) < 0 )
+                    {
+                        surfaceVertices.Add( point1 );
+                        normals.Add( normal );
+                    }
+                }
+            }
+
+            for ( var i = 0; i < subdivision; i++ )
+            {
+                var prim = GameObject.CreatePrimitive( PrimitiveType.Cube );
+                prim.transform.position = BSP.DisplacementVerts[displacement.DispVertStart + i].Vector;
+            }
+
             //
             // Triangulate
             //

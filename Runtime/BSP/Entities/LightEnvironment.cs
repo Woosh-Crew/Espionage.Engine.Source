@@ -22,8 +22,13 @@ namespace Espionage.Engine.Source
 
         public void OnRead( BSP.Entity ent )
         {
-            if ( _light != null )
+            if ( _lightEnv != null )
+            {
+                Destroy( gameObject );
                 return;
+            }
+
+            _lightEnv = this;
 
             // Create Directional Light
             _light = gameObject.AddComponent<Light>();
@@ -40,6 +45,7 @@ namespace Espionage.Engine.Source
             _light.transform.rotation = Quaternion.Euler( Angles.Pitch + -Pitch, Angles.Yaw + 120, Angles.Roll );
         }
 
-        private static Light _light;
+        private Light _light;
+        private static LightEnvironment _lightEnv;
     }
 }

@@ -12,7 +12,7 @@ namespace Espionage.Engine.Source
             {
                 var split = value.Split( " " );
 
-                if ( split.Length < 4 )
+                if ( split.Length < 3 )
                     throw new InvalidCastException();
 
                 return new Color()
@@ -20,7 +20,7 @@ namespace Espionage.Engine.Source
                     Red = float.Parse( split[0] ),
                     Green = float.Parse( split[1] ),
                     Blue = float.Parse( split[2] ),
-                    Alpha = float.Parse( split[3] )
+                    Alpha = split.Length > 3 ? float.Parse( split[3] ) : 255
                 };
             }
 

@@ -157,8 +157,7 @@ namespace Espionage.Engine.Source
 
                 // This is fucking stupid
                 var flags = BSP.TextureInfo[face.TexInfo].Flags;
-                if ( flags.HasFlag( BSP.TexInfo.Flag.Nodraw ) ||
-                     flags.HasFlag( BSP.TexInfo.Flag.Trigger ) ||
+                if ( flags.HasFlag( BSP.TexInfo.Flag.Trigger ) ||
                      flags.HasFlag( BSP.TexInfo.Flag.Sky ) ||
                      flags.HasFlag( BSP.TexInfo.Flag.Hitbox ) ||
                      flags.HasFlag( BSP.TexInfo.Flag.Hint ) ||
@@ -179,9 +178,7 @@ namespace Espionage.Engine.Source
 
             foreach ( var (key, value) in combiner )
             {
-                var instance = value;
-
-                if ( instance == null )
+                if ( value == null )
                     continue;
 
                 // Create Mesh
@@ -191,7 +188,7 @@ namespace Espionage.Engine.Source
                     name = $"Map - {key}"
                 };
 
-                finalMesh.CombineMeshes( instance.ToArray() );
+                finalMesh.CombineMeshes( value.ToArray() );
                 finalMesh.Optimize();
 
                 finalMesh.RecalculateBounds();
@@ -228,43 +225,42 @@ namespace Espionage.Engine.Source
                 Vector3 point1 = BSP.Vertices[currentEdge[0]];
                 Vector3 point2 = BSP.Vertices[currentEdge[1]];
 
-                var planeNormal = BSP.Planes[face.PlaneNum].Normal;
+                var normal = BSP.Planes[face.PlaneNum].Normal;
 
                 if ( BSP.SurfEdges[face.FirstEdge + i] >= 0 )
                 {
-                    if ( surfaceVertices.IndexOf( point1 ) < 0 )
+                    originalVertices.Add( point1 );
+                    originalVertices.Add( point2 );
+
+                    if ( !surfaceVertices.Contains( point1 ) )
                     {
                         surfaceVertices.Add( point1 );
-                        normals.Add( planeNormal );
+                        normals.Add( normal );
                     }
 
-                    originalVertices.Add( point1 );
-
-                    if ( surfaceVertices.IndexOf( point2 ) < 0 )
+                    if ( !surfaceVertices.Contains( point2 ) )
                     {
                         surfaceVertices.Add( point2 );
-                        normals.Add( planeNormal );
+                        normals.Add( normal );
                     }
-
-                    originalVertices.Add( point2 );
                 }
                 else
                 {
+                    originalVertices.Add( point2 );
+                    originalVertices.Add( point1 );
+
                     if ( surfaceVertices.IndexOf( point2 ) < 0 )
                     {
                         surfaceVertices.Add( point2 );
-                        normals.Add( planeNormal );
+                        normals.Add( normal );
                     }
 
-                    originalVertices.Add( point2 );
 
                     if ( surfaceVertices.IndexOf( point1 ) < 0 )
                     {
                         surfaceVertices.Add( point1 );
-                        normals.Add( planeNormal );
+                        normals.Add( normal );
                     }
-
-                    originalVertices.Add( point1 );
                 }
             }
 
@@ -308,8 +304,49 @@ namespace Espionage.Engine.Source
 
         public Mesh MakeDisplacement( BSP.Face face )
         {
+            var surfaceVertices = new List<Vector3>();
+            var originalVertices = new List<Vector3>();
+            var normals = new List<Vector3>();
+
             var displacement = BSP.DisplacementInfo[face.DisplacementInfo];
-            return null;
+            var subdivision = Mathf.Pow( 2, displacement.Power );
+
+            //
+            // Triangulate
+            //
+
+            var tris = new List<int>();
+
+            for ( var i = 0; i < originalVertices.Count / 2; i++ )
+            {
+                var first = surfaceVertices.IndexOf( originalVertices[i * 2] );
+                var second = surfaceVertices.IndexOf( originalVertices[i * 2 + 1] );
+                var third = surfaceVertices.IndexOf( originalVertices[0] );
+
+                tris.Add( first );
+                tris.Add( second );
+                tris.Add( third );
+            }
+
+            //
+            // Finish
+            // 
+
+            var (texture, lightmaps) = GenerateUVs( face, surfaceVertices );
+
+            var mesh = new Mesh
+            {
+                vertices = surfaceVertices.ToArray(),
+                triangles = tris.ToArray(),
+                normals = normals.ToArray(),
+                uv = texture,
+                uv2 = lightmaps
+            };
+
+            mesh.Optimize();
+            mesh.RecalculateTangents();
+
+            return mesh;
         }
 
         public (Vector2[] uv1, Vector2[] uv2) GenerateUVs( BSP.Face face, List<Vector3> surfaceVertices )

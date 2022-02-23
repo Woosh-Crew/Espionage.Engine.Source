@@ -6,7 +6,7 @@ namespace Espionage.Engine.Source
     {
         public struct DispVert : ILump
         {
-            public Vector vec; // Vector field defining displacement volume.
+            public Vector Vector; // Vector field defining displacement volume.
             public float Distance; // Displacement distances.
             public float Alpha; // "per vertex" alpha values.
 
@@ -14,7 +14,7 @@ namespace Espionage.Engine.Source
             {
                 var pos = new Vector();
                 pos.Read( reader );
-                vec = pos;
+                Vector = pos;
 
                 Distance = reader.ReadSingle();
                 Alpha = reader.ReadSingle();

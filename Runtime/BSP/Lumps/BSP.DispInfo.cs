@@ -16,7 +16,6 @@ namespace Espionage.Engine.Source
             public ushort MapFace; // Which map face this displacement comes from.
             public int LightmapAlphaStart; // Index into ddisplightmapalpha.
             public int LightmapSamplePositionStart; // Index into LUMP_DISP_LIGHTMAP_SAMPLE_POSITIONS.
-            public uint AllowedVerts; // active verticies
 
             public void Read( BinaryReader reader )
             {
@@ -33,7 +32,6 @@ namespace Espionage.Engine.Source
                 MapFace = reader.ReadUInt16();
                 LightmapAlphaStart = reader.ReadInt32();
                 LightmapSamplePositionStart = reader.ReadInt32();
-                AllowedVerts = reader.ReadUInt32();
             }
         }
     }

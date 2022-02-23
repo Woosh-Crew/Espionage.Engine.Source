@@ -5,10 +5,10 @@ namespace Espionage.Engine.Source
     [Library( "worldspawn" ), Spawnable]
     public class SourceWorld : World, BSP.IPointEntity
     {
-        [Property( Name = "coldword" )]
+        [Property( "coldword" )]
         public bool IsCold { get; set; }
 
-        [Property( Name = "skyname" )]
+        [Property( "skyname" )]
         public string SkyName { get; set; }
     }
 }

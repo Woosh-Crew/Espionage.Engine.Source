@@ -134,12 +134,12 @@ namespace Espionage.Engine.Source
 
         public interface IPointEntity
         {
-            void Read( Entity ent ) { }
+            void OnRead( Entity ent ) { }
         }
 
         public interface IBrushEntity
         {
-            void Read( Entity ent, GameObject gameObject ) { }
+            void OnRead( Entity ent, GameObject model ) { }
         }
     }
 }

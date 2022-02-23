@@ -339,8 +339,6 @@ namespace Espionage.Engine.Source
                         property[spawnedEntity] = Convert.ChangeType( keyValues.Value, property.Type );
                 }
 
-                Debugging.Log.Info( ( spawnedEntity as SourceWorld ).SkyName );
-
                 // Create Model if it has one
                 if ( entity.KeyValues.TryGetValue( "model", out var value ) && value.StartsWith( "*" ) )
                 {
@@ -350,12 +348,12 @@ namespace Espionage.Engine.Source
 
                     obj.name = entity.KeyValues.ContainsKey( "targetname" ) ? entity.KeyValues["targetname"] : entity.KeyValues["classname"];
 
-                    ( spawnedEntity as BSP.IBrushEntity )?.Read( entity, obj );
+                    ( spawnedEntity as BSP.IBrushEntity )?.OnRead( entity, obj );
 
                     continue;
                 }
 
-                ( spawnedEntity as BSP.IPointEntity )?.Read( entity );
+                ( spawnedEntity as BSP.IPointEntity )?.OnRead( entity );
             }
         }
     }

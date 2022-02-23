@@ -36,7 +36,6 @@ namespace Espionage.Engine.Source
             _light.shadows = LightShadows.Soft;
             _light.color = Color;
             _light.intensity = Color.Alpha / 100 / 3;
-            _light.lightmapBakeType = LightmapBakeType.Mixed;
 
             RenderSettings.ambientLight = Ambient;
             RenderSettings.sun = _light;

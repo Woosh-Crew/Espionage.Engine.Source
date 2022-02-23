@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using UnityEngine;
 
 namespace Espionage.Engine.Source
 {
@@ -129,6 +130,16 @@ namespace Espionage.Engine.Source
             }
 
             return entities.ToArray();
+        }
+
+        public interface IPointEntity
+        {
+            void Read( Entity ent ) { }
+        }
+
+        public interface IBrushEntity
+        {
+            void Read( Entity ent, GameObject gameObject ) { }
         }
     }
 }

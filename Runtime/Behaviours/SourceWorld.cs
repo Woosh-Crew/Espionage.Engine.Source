@@ -1,11 +1,14 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+// ReSharper disable StringLiteralTypo
 
 namespace Espionage.Engine.Source
 {
-    public class SourceWorld : Behaviour
+    [Library( "worldspawn" ), Spawnable]
+    public class SourceWorld : World, BSP.IPointEntity
     {
-        
+        [Property( Name = "coldword" )]
+        public bool IsCold { get; set; }
+
+        [Property( Name = "skyname" )]
+        public string SkyName { get; set; }
     }
 }

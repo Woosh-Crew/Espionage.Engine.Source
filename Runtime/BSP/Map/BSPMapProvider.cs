@@ -6,7 +6,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using Espionage.Engine.Resources;
-using UnityEditor;
 
 namespace Espionage.Engine.Source
 {
@@ -15,10 +14,10 @@ namespace Espionage.Engine.Source
     {
     #if UNITY_EDITOR
 
-        [MenuItem( "Tools/Espionage.Engine/Source/Load BSP" )]
+        [UnityEditor.MenuItem( "Tools/Espionage.Engine/Source/Load BSP" )]
         private static void LoadBSP()
         {
-            var path = EditorUtility.OpenFilePanel( "Load .bsp File", "", "bsp" );
+            var path = UnityEditor.EditorUtility.OpenFilePanel( "Load .bsp File", "", "bsp" );
 
             if ( string.IsNullOrEmpty( path ) )
             {
@@ -65,7 +64,7 @@ namespace Espionage.Engine.Source
             SceneManager.SetActiveScene( Scene.Value );
 
             // Generate BSP
-            Generate( BSP.Models[0] /* World Mesh */ ).name = "World";
+            MakeModel( BSP.Models[0] /* World Mesh */ ).name = "World";
             SpawnEntities();
 
             // Finish
@@ -88,13 +87,13 @@ namespace Espionage.Engine.Source
         // BSP Generator
         //
 
-        public GameObject Generate( BSP.Model model )
+        public GameObject MakeModel( BSP.Model model )
         {
             var root = new GameObject( "Geometry" );
 
             // Build Mesh
 
-            var combiner = new List<CombineInstance>[BSP.TexdataStringTable.Length];
+            var combiner = new Dictionary<int, List<CombineInstance>>();
 
             for ( var i = 0; i < model.NumFaces; i++ )
             {
@@ -117,13 +116,15 @@ namespace Espionage.Engine.Source
                 if ( mesh == null )
                     continue;
 
-                combiner[id] ??= new List<CombineInstance>();
+                if ( !combiner.ContainsKey( id ) )
+                    combiner.Add( id, new List<CombineInstance>() );
+
                 combiner[id].Add( new CombineInstance() { mesh = mesh, transform = Matrix4x4.identity } );
             }
 
-            for ( var i = 0; i < combiner.Length; i++ )
+            foreach ( var (key, value) in combiner )
             {
-                var instance = combiner[i];
+                var instance = value;
 
                 if ( instance == null )
                     continue;
@@ -132,7 +133,7 @@ namespace Espionage.Engine.Source
 
                 var finalMesh = new Mesh()
                 {
-                    name = $"Map - {i}"
+                    name = $"Map - {key}"
                 };
 
                 finalMesh.CombineMeshes( instance.ToArray() );
@@ -142,7 +143,7 @@ namespace Espionage.Engine.Source
                 finalMesh.RecalculateNormals();
 
                 // Create Object
-                var go = new GameObject( $"Map [{i}]" );
+                var go = new GameObject( $"Map [{key}]" );
                 var renderer = go.AddComponent<MeshRenderer>();
                 renderer.shadowCastingMode = ShadowCastingMode.TwoSided;
 
@@ -322,33 +323,39 @@ namespace Espionage.Engine.Source
 
         public void SpawnEntities()
         {
-            var sun = BSP.Entities.FirstOrDefault( e => e.KeyValues["classname"] == "light_environment" );
-
-            // Make Sun
-            var sunGo = new GameObject().AddComponent<Light>();
-            sunGo.transform.rotation = Quaternion.Euler( BSP.Vector.Parse( sun.KeyValues["angles"] ) );
-            sunGo.type = LightType.Directional;
-
-            var split = sun.KeyValues["_light"].Split( " " );
-
-            sunGo.color = new Color32( byte.Parse( split[0] ), byte.Parse( split[1] ), byte.Parse( split[2] ), 1 );
-
-            // Generate Models for Entities
             foreach ( var entity in BSP.Entities )
             {
-                if ( !entity.KeyValues.ContainsKey( "origin" ) )
+                var spawnedEntity = Library.Database.Create( entity.KeyValues["classname"] );
+
+                // If we're not a valid entity, continue.
+                if ( spawnedEntity is null )
                     continue;
 
+                // Fill in Data
+                foreach ( var keyValues in entity.KeyValues )
+                {
+                    var property = spawnedEntity.ClassInfo.Properties[keyValues.Key];
+                    if ( property != null )
+                        property[spawnedEntity] = Convert.ChangeType( keyValues.Value, property.Type );
+                }
+
+                Debugging.Log.Info( ( spawnedEntity as SourceWorld ).SkyName );
+
+                // Create Model if it has one
                 if ( entity.KeyValues.TryGetValue( "model", out var value ) && value.StartsWith( "*" ) )
                 {
                     // Make the Mesh
-                    var index = int.Parse( value.Substring( 1 ) );
-                    var obj = Generate( BSP.Models[index] );
+                    var index = int.Parse( value[1..] );
+                    var obj = MakeModel( BSP.Models[index] );
 
                     obj.name = entity.KeyValues.ContainsKey( "targetname" ) ? entity.KeyValues["targetname"] : entity.KeyValues["classname"];
 
-                    obj.transform.position = BSP.Vector.Parse( entity.KeyValues["origin"] );
+                    ( spawnedEntity as BSP.IBrushEntity )?.Read( entity, obj );
+
+                    continue;
                 }
+
+                ( spawnedEntity as BSP.IPointEntity )?.Read( entity );
             }
         }
     }

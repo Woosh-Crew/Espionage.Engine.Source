@@ -9,14 +9,14 @@ namespace Espionage.Engine.Source
     public class EnvFogController : Behaviour, BSP.IPointEntity
     {
         // Colors
-        
+
         [Property( "fogcolor" )]
         public BSP.Color Color1 { get; set; }
 
         // State & Distance
 
-        // [Property( "fogenable" )]
-        // public bool Enabled { get; set; }
+        [Property( "fogenable" )]
+        public bool Enabled { get; set; }
 
         [Property( "fogstart" )]
         public float Start { get; set; }
@@ -28,7 +28,7 @@ namespace Espionage.Engine.Source
         {
             // Apply Fog
 
-            RenderSettings.fog = true;
+            RenderSettings.fog = Enabled;
             RenderSettings.fogColor = Color1;
             RenderSettings.fogMode = FogMode.Linear;
             RenderSettings.fogStartDistance = Start / 100;

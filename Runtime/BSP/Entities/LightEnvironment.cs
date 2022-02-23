@@ -13,10 +13,10 @@ namespace Espionage.Engine.Source
 
         [Property( "angles" )]
         public BSP.Angles Angles { get; set; }
-        
+
         [Property( "_light" )]
         public BSP.Color Color { get; set; }
-        
+
         [Property( "_ambient" )]
         public BSP.Color Ambient { get; set; }
 
@@ -24,18 +24,19 @@ namespace Espionage.Engine.Source
         {
             if ( _light != null )
                 return;
-            
+
             // Create Directional Light
             _light = gameObject.AddComponent<Light>();
-            _light.type = LightType.Directional;    
+            _light.type = LightType.Directional;
             _light.shadows = LightShadows.Soft;
             _light.color = Color;
-            _light.intensity = ( Color.Alpha / 100 ) / 4;
-            
+            _light.intensity = Color.Alpha / 100 / 3;
+            _light.lightmapBakeType = LightmapBakeType.Mixed;
+
             RenderSettings.ambientLight = Ambient;
             RenderSettings.sun = _light;
             RenderSettings.ambientMode = AmbientMode.Flat;
-            
+
             _light.transform.rotation = Quaternion.Euler( Angles.Pitch + -Pitch, Angles.Yaw + 120, Angles.Roll );
         }
 

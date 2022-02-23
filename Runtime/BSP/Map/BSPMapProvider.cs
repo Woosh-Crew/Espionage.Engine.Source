@@ -29,7 +29,6 @@ namespace Espionage.Engine.Source
             new Map( new BSPMapProvider( bsp ) ).Load();
         }
 
-
     #endif
 
         // Id
@@ -64,8 +63,7 @@ namespace Espionage.Engine.Source
             SceneManager.SetActiveScene( Scene.Value );
 
             // Generate BSP
-            MakeModel( BSP.Models[0] /* World Mesh */ ).name = "World";
-            SpawnEntities();
+            Generate();
 
             // Finish
             IsLoading = false;
@@ -87,7 +85,64 @@ namespace Espionage.Engine.Source
         // BSP Generator
         //
 
-        public GameObject MakeModel( BSP.Model model )
+        public void Generate()
+        {
+            foreach ( var entity in BSP.Entities )
+            {
+                var className = entity.KeyValues["classname"];
+                var spawnedEntity = Library.Database.Create( className );
+
+                // If we're not a valid entity, continue.
+                if ( spawnedEntity is null )
+                    continue;
+
+                // Fill in Data
+                foreach ( var keyValues in entity.KeyValues )
+                {
+                    var property = spawnedEntity.ClassInfo.Properties[keyValues.Key];
+
+                    if ( property != null )
+                    {
+                        // This is dumb
+                        if ( property.Type == typeof( BSP.Vector ) )
+                            property[spawnedEntity] = BSP.Vector.Parse( keyValues.Value );
+                        else if ( property.Type == typeof( BSP.Angles ) )
+                            property[spawnedEntity] = BSP.Angles.Parse( keyValues.Value );
+                        else if ( property.Type == typeof( BSP.Color ) )
+                            property[spawnedEntity] = BSP.Color.Parse( keyValues.Value );
+                        else if ( property.Type == typeof( bool ) )
+                            property[spawnedEntity] = int.Parse( keyValues.Value ) == 1;
+                        else
+                            property[spawnedEntity] = Convert.ChangeType( keyValues.Value, property.Type );
+                    }
+                }
+
+                if ( className == "worldspawn" )
+                {
+                    var obj = MakeModel( BSP.Models[0], true );
+                    ( spawnedEntity as BSP.IBrushEntity )?.OnRead( entity, obj );
+                    continue;
+                }
+
+                // Create Model if it has one
+                if ( entity.KeyValues.TryGetValue( "model", out var value ) && value.StartsWith( "*" ) )
+                {
+                    // Make the Mesh
+                    var index = int.Parse( value[1..] );
+                    var obj = MakeModel( BSP.Models[index] );
+
+                    obj.name = "Mesh";
+
+                    ( spawnedEntity as BSP.IBrushEntity )?.OnRead( entity, obj );
+
+                    continue;
+                }
+
+                ( spawnedEntity as BSP.IPointEntity )?.OnRead( entity );
+            }
+        }
+
+        public GameObject MakeModel( BSP.Model model, bool hasLightmaps = false )
         {
             var root = new GameObject( "Geometry" );
 
@@ -154,6 +209,7 @@ namespace Espionage.Engine.Source
                 collider.sharedMesh = finalMesh;
 
                 go.transform.parent = root.transform;
+                go.isStatic = hasLightmaps;
             }
 
             return root;
@@ -253,17 +309,6 @@ namespace Espionage.Engine.Source
         public Mesh MakeDisplacement( BSP.Face face )
         {
             var displacement = BSP.DisplacementInfo[face.DisplacementInfo];
-
-            for ( var i = 0; i < face.NumEdges; i++ )
-            {
-                var currentEdge = BSP.Edges[Mathf.Abs( BSP.SurfEdges[face.FirstEdge + i] )].VertexIndices;
-
-                Vector3 point1 = BSP.Vertices[currentEdge[0]];
-                Vector3 point2 = BSP.Vertices[currentEdge[1]];
-
-                var planeNormal = BSP.Planes[face.PlaneNum].Normal;
-            }
-
             return null;
         }
 
@@ -315,57 +360,6 @@ namespace Espionage.Engine.Source
             go.transform.position = cubemap.Origin * BSP.Scale;
 
             return go;
-        }
-
-        //
-        // Entity Generator
-        //
-
-        public void SpawnEntities()
-        {
-            foreach ( var entity in BSP.Entities )
-            {
-                var spawnedEntity = Library.Database.Create( entity.KeyValues["classname"] );
-
-                // If we're not a valid entity, continue.
-                if ( spawnedEntity is null )
-                    continue;
-
-                // Fill in Data
-                foreach ( var keyValues in entity.KeyValues )
-                {
-                    var property = spawnedEntity.ClassInfo.Properties[keyValues.Key];
-
-                    if ( property != null )
-                    {
-                        // This is dumb
-                        if ( property.Type == typeof( BSP.Vector ) )
-                            property[spawnedEntity] = BSP.Vector.Parse( keyValues.Value );
-                        else if ( property.Type == typeof( BSP.Angles ) )
-                            property[spawnedEntity] = BSP.Angles.Parse( keyValues.Value );
-                        else if ( property.Type == typeof( BSP.Color ) )
-                            property[spawnedEntity] = BSP.Color.Parse( keyValues.Value );
-                        else
-                            property[spawnedEntity] = Convert.ChangeType( keyValues.Value, property.Type );
-                    }
-                }
-
-                // Create Model if it has one
-                if ( entity.KeyValues.TryGetValue( "model", out var value ) && value.StartsWith( "*" ) )
-                {
-                    // Make the Mesh
-                    var index = int.Parse( value[1..] );
-                    var obj = MakeModel( BSP.Models[index] );
-
-                    obj.name = "Mesh";
-
-                    ( spawnedEntity as BSP.IBrushEntity )?.OnRead( entity, obj );
-
-                    continue;
-                }
-
-                ( spawnedEntity as BSP.IPointEntity )?.OnRead( entity );
-            }
         }
     }
 }

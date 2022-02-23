@@ -335,8 +335,19 @@ namespace Espionage.Engine.Source
                 foreach ( var keyValues in entity.KeyValues )
                 {
                     var property = spawnedEntity.ClassInfo.Properties[keyValues.Key];
+
                     if ( property != null )
-                        property[spawnedEntity] = Convert.ChangeType( keyValues.Value, property.Type );
+                    {
+                        // This is dumb
+                        if ( property.Type == typeof( BSP.Vector ) )
+                            property[spawnedEntity] = BSP.Vector.Parse( keyValues.Value );
+                        else if ( property.Type == typeof( BSP.Angles ) )
+                            property[spawnedEntity] = BSP.Angles.Parse( keyValues.Value );
+                        else if ( property.Type == typeof( BSP.Color ) )
+                            property[spawnedEntity] = BSP.Color.Parse( keyValues.Value );
+                        else
+                            property[spawnedEntity] = Convert.ChangeType( keyValues.Value, property.Type );
+                    }
                 }
 
                 // Create Model if it has one
@@ -346,7 +357,7 @@ namespace Espionage.Engine.Source
                     var index = int.Parse( value[1..] );
                     var obj = MakeModel( BSP.Models[index] );
 
-                    obj.name = entity.KeyValues.ContainsKey( "targetname" ) ? entity.KeyValues["targetname"] : entity.KeyValues["classname"];
+                    obj.name = "Mesh";
 
                     ( spawnedEntity as BSP.IBrushEntity )?.OnRead( entity, obj );
 

@@ -23,14 +23,5 @@ namespace Espionage.Engine.Source
         }
 
         ~VTF() { Reader.Dispose(); }
-
-        //
-        // Structs
-        //
-
-        public readonly struct Entry
-        {
-            public Entry( BinaryReader reader ) { }
-        }
     }
 }

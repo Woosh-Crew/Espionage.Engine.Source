@@ -13,9 +13,11 @@ namespace Espionage.Engine.Source
             {
                 Indent = reader.ReadBytes( 4 );
 
-                Version = new uint[2];
-                Version[0] = reader.ReadUInt32();
-                Version[1] = reader.ReadUInt32();
+                Version = new uint[2]
+                {
+                    reader.ReadUInt32(),
+                    reader.ReadUInt32()
+                };
 
                 Size = reader.ReadUInt32();
 
@@ -51,9 +53,47 @@ namespace Espionage.Engine.Source
                 };
 
                 BumpmapScale = reader.ReadSingle();
+                HighResImageFormat = reader.ReadUInt32();
+                MipmapCount = reader.ReadSByte();
+                LowResImageFormat = reader.ReadUInt32();
+                LowResImageWidth = reader.ReadSByte();
+                LowResImageHeight = reader.ReadSByte();
+
+                // Version Specific
+                Depth = default;
+                Padding2 = default;
+                NumResources = default;
+                Padding3 = default;
+
+                if ( IsVersion( 7, 2 ) )
+                    Depth = reader.ReadUInt16();
+
+                if ( IsVersion( 7, 3 ) )
+                {
+                    Padding2 = new sbyte[3]
+                    {
+                        reader.ReadSByte(),
+                        reader.ReadSByte(),
+                        reader.ReadSByte()
+                    };
+
+                    NumResources = reader.ReadUInt32();
+
+                    Padding2 = new sbyte[8]
+                    {
+                        reader.ReadSByte(),
+                        reader.ReadSByte(),
+                        reader.ReadSByte(),
+                        reader.ReadSByte(),
+                        reader.ReadSByte(),
+                        reader.ReadSByte(),
+                        reader.ReadSByte(),
+                        reader.ReadSByte()
+                    };
+                }
             }
 
-            public bool IsVersion( int major, int minor ) => Version[0] == major && Version[1] == minor;
+            public bool IsVersion( int major, int minor ) => Version[0] >= major && Version[1] >= minor;
 
             public readonly byte[] Indent;
             public readonly uint[] Version;
@@ -72,6 +112,40 @@ namespace Espionage.Engine.Source
             public readonly sbyte[] Padding1;
 
             public readonly float BumpmapScale;
+            public readonly uint HighResImageFormat;
+            public readonly sbyte MipmapCount;
+            public readonly uint LowResImageFormat;
+            public readonly sbyte LowResImageWidth;
+            public readonly sbyte LowResImageHeight;
+
+            // 7.2+ Readonly 
+            public readonly ushort Depth;
+
+            // 7.3+ Readonly 
+            public readonly sbyte[] Padding2;
+            public readonly uint NumResources;
+
+            public readonly sbyte[] Padding3;
+
+            public readonly struct Entry
+            {
+                public Entry( BinaryReader reader )
+                {
+                    Tag = new sbyte[3]
+                    {
+                        reader.ReadSByte(),
+                        reader.ReadSByte(),
+                        reader.ReadSByte()
+                    };
+
+                    Flags = reader.ReadSByte();
+                    Offset = reader.ReadUInt32();
+                }
+
+                public readonly sbyte[] Tag;
+                public readonly sbyte Flags;
+                public readonly uint Offset;
+            }
         }
     }
 }

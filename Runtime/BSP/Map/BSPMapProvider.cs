@@ -14,7 +14,7 @@ namespace Espionage.Engine.Source
     {
     #if UNITY_EDITOR
 
-        [UnityEditor.MenuItem( "Tools/Espionage.Engine/Source/Load BSP" )]
+        [UnityEditor.MenuItem( "Tools/Espionage.Engine/Source/Load BSP", priority = 0 )]
         private static void LoadBSP()
         {
             var path = UnityEditor.EditorUtility.OpenFilePanel( "Load .bsp File", "", "bsp" );

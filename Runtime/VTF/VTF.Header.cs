@@ -129,6 +129,8 @@ namespace Espionage.Engine.Source
 
             public readonly struct Entry
             {
+                public bool HasData => Flags != 0x2;
+
                 public Entry( BinaryReader reader )
                 {
                     Tag = new sbyte[3]

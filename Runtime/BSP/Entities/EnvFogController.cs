@@ -5,8 +5,8 @@ using UnityEngine.Rendering;
 
 namespace Espionage.Engine.Source
 {
-    [Library( "env_fog_controller" ), Title( "Fog Controller" ), Group( "Entities" ), Spawnable]
-    public class EnvFogController : Behaviour, BSP.IPointEntity
+    [Library( "env_fog_controller" ), Title( "Fog Controller" )]
+    public class EnvFogController : SourceEntity, BSP.IPointEntity
     {
         // Colors
 

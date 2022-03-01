@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Espionage.Engine.Source
 {
-    [Library( "worldspawn" ), Spawnable]
+    [Library( "worldspawn" ), Group( "Source Entities" ), Spawnable]
     public class SourceWorld : World, BSP.IBrushEntity
     {
         [Property( "coldword" )]

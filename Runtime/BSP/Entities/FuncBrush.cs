@@ -5,8 +5,8 @@ using UnityEngine.Rendering;
 
 namespace Espionage.Engine.Source
 {
-    [Library( "func_brush" ), Title( "Func Brush" ), Group( "Entities" ), Spawnable]
-    public class FuncBrush : Behaviour, BSP.IBrushEntity
+    [Library( "func_brush" ), Title( "Func Brush" )]
+    public class FuncBrush : SourceEntity, BSP.IBrushEntity
     {
         [Property( "disablereceiveshadows" )]
         public bool DisableReceiveShadows { get; set; }

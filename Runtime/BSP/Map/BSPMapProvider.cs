@@ -25,8 +25,9 @@ namespace Espionage.Engine.Source
                 return;
             }
 
-            var bsp = Files.Load<BSP>( path );
-            new Map( new BSPMapProvider( bsp ) ).Load();
+
+            var map = new Map( Files.Load<BSP>( path ).Provider() );
+            map.Load();
         }
 
     #endif

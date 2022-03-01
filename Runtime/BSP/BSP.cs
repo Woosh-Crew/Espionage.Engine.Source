@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Espionage.Engine.Resources;
 using UnityEngine;
 
 namespace Espionage.Engine.Source
@@ -56,6 +57,8 @@ namespace Espionage.Engine.Source
 
             Reader.Dispose();
         }
+
+        public IMapProvider Provider() => new BSPMapProvider( this );
 
         //
         // Lumps

@@ -5,8 +5,8 @@ using UnityEngine.Rendering;
 
 namespace Espionage.Engine.Source
 {
-    [Library( "light_spot" ), Title( "Spot Light" ), Group( "Entities" ), Spawnable]
-    public class LightSpot : Behaviour, BSP.IPointEntity
+    [Library( "light_spot" ), Title( "Spot Light" )]
+    public class LightSpot : SourceEntity, BSP.IPointEntity
     {
         [Property( "pitch" )]
         public float Pitch { get; set; }

@@ -9,8 +9,8 @@ using UnityEngine.SceneManagement;
 namespace Espionage.Engine.Source
 {
     /// <summary>Deserialized BSP Data</summary>
-    [Title( "BSP File" ), Group( "Files" ), File( Extension = "bsp" )]
-    public partial class BSP : IFile<Map, Scene>
+    [Title( "BSP File" ), Group( "Maps" ), File( Extension = "bsp" )]
+    public partial class BSP : IFile<Map, Scene>, IAsset
     {
         public const float Scale = 0.01905f;
 

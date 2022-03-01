@@ -7,27 +7,27 @@ using UnityEngine;
 namespace Espionage.Engine.Source
 {
     /// <summary>Deserialized BSP Data</summary>
-    public partial class BSP
+    [Title( "BSP File" ), Group( "Files" ), File( Extension = "bsp" )]
+    public partial class BSP : IFile
     {
         public const float Scale = 0.01905f;
 
-        public FileInfo File { get; }
+        public Library ClassInfo { get; }
+
+        public BSP() { ClassInfo = Library.Register( this ); }
+        ~BSP() { Library.Unregister( this ); }
+
+        //
+        // File
+        //
+
+        public FileInfo File { get; set; }
         public BSPReader Reader { get; private set; }
 
-        public BSP( FileInfo info )
-        {
-            if ( info.Extension != ".bsp" )
-                throw new FileLoadException( "Invalid Extension" );
-
-            File = info;
-        }
-
-        public void Load()
+        public void Load( FileStream fileStream )
         {
             // Open Streams for reading the header
-            using var fileStream = File.Open( FileMode.Open, FileAccess.Read );
             using var binaryReader = new BinaryReader( fileStream );
-
             Reader = new BSPReader( binaryReader );
 
             Entities = Reader.Read( 0, ReadEntities );
@@ -53,13 +53,13 @@ namespace Espionage.Engine.Source
             Cubemaps = Reader.Read<Cubemap>( 42, 16 );
 
             TexdataStringTable = Reader.Read( 44, 4, e => e.ReadInt32() );
-        }
 
-        ~BSP()
-        {
-            // I think we have to do this
             Reader.Dispose();
         }
+
+        //
+        // Lumps
+        //
 
         public Plane[] Planes; // LUMP 1
         public TexData[] TextureData; // LUMP 2

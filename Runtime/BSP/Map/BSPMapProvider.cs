@@ -9,7 +9,7 @@ using Espionage.Engine.Resources;
 
 namespace Espionage.Engine.Source
 {
-    [Library, Title( "BSP Map" ), Group( "Maps" ), File( Extension = "bsp", Serialization = "Binary" )]
+    [Library, Title( "BSP Map" ), Group( "Maps" )]
     public class BSPMapProvider : IMapProvider
     {
     #if UNITY_EDITOR
@@ -25,7 +25,7 @@ namespace Espionage.Engine.Source
                 return;
             }
 
-            var bsp = new BSP( new FileInfo( path ) );
+            var bsp = Files.Load<BSP>( path );
             new Map( new BSPMapProvider( bsp ) ).Load();
         }
 
@@ -51,8 +51,6 @@ namespace Espionage.Engine.Source
 
         public void Load( Action finished )
         {
-            BSP.Load();
-
             using var _ = Debugging.Stopwatch( $"Loading {BSP.File.Name}, Format {BSP.Reader.Header.Format}, Version {BSP.Reader.Header.Version}" );
 
             // Start

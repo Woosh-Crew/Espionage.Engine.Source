@@ -4,12 +4,13 @@ using System.IO;
 using System.Text;
 using Espionage.Engine.Resources;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Espionage.Engine.Source
 {
     /// <summary>Deserialized BSP Data</summary>
     [Title( "BSP File" ), Group( "Files" ), File( Extension = "bsp" )]
-    public partial class BSP : IFile
+    public partial class BSP : IFile<Map, Scene>
     {
         public const float Scale = 0.01905f;
 
@@ -58,7 +59,7 @@ namespace Espionage.Engine.Source
             Reader.Dispose();
         }
 
-        public IMapProvider Provider() => new BSPMapProvider( this );
+        public Resource.IProvider<Map, Scene> Provider() => new BSPMapProvider( this );
 
         //
         // Lumps

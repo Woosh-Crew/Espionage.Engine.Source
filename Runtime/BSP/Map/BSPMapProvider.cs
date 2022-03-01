@@ -10,33 +10,13 @@ using Espionage.Engine.Resources;
 namespace Espionage.Engine.Source
 {
     [Library, Title( "BSP Map" ), Group( "Maps" )]
-    public class BSPMapProvider : IMapProvider
+    public class BSPMapProvider : Resource.IProvider<Map, Scene>
     {
-    #if UNITY_EDITOR
-
-        [UnityEditor.MenuItem( "Tools/Espionage.Engine/Source/Load BSP", priority = 0 )]
-        private static void LoadBSP()
-        {
-            var path = UnityEditor.EditorUtility.OpenFilePanel( "Load .bsp File", "", "bsp" );
-
-            if ( string.IsNullOrEmpty( path ) )
-            {
-                Debugging.Log.Info( "No Map Selected" );
-                return;
-            }
-
-
-            var map = new Map( Files.Load<BSP>( path ).Provider() );
-            map.Load();
-        }
-
-    #endif
-
         // Id
         public string Identifier => BSP.File.FullName;
 
         // Outcome
-        public Scene? Scene { get; private set; }
+        public Scene Output { get; private set; }
 
         // Loading Meta
         public float Progress => 0;
@@ -58,8 +38,8 @@ namespace Espionage.Engine.Source
             IsLoading = true;
 
             // Create Scene
-            Scene = SceneManager.CreateScene( Path.GetFileName( BSP.File.Name ) );
-            SceneManager.SetActiveScene( Scene.Value );
+            Output = SceneManager.CreateScene( Path.GetFileName( BSP.File.Name ) );
+            SceneManager.SetActiveScene( Output );
 
             // Generate BSP
             Generate();
@@ -73,7 +53,7 @@ namespace Espionage.Engine.Source
         {
             IsLoading = true;
 
-            Scene?.Unload();
+            Output.Unload();
             Debugging.Log.Info( "Finished Unloading BSP" );
 
             IsLoading = false;

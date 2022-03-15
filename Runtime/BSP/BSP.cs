@@ -12,19 +12,13 @@ namespace Espionage.Engine.Source
 	{
 		public const float Scale = 0.01905f;
 
-		public Library ClassInfo { get; }
-
-		public BSP() { ClassInfo = Library.Register( this ); }
-		~BSP() { Library.Unregister( this ); }
-
 		//
 		// File
 		//
 
-		public FileInfo Source { get; set; }
 		public BSPReader Reader { get; private set; }
 
-		public void Load( FileStream fileStream )
+		public override void Load( FileStream fileStream )
 		{
 			// Open Streams for reading the header
 			using var binaryReader = new BinaryReader( fileStream );

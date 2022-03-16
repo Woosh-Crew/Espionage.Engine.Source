@@ -28,7 +28,7 @@ namespace Espionage.Engine.Source
 
 		public override void Load( Action<Scene> finished = null )
 		{
-			using var _ = Debugging.Stopwatch( $"Loading {BSP.Source.Name}, Format {BSP.Reader.Header.Format}, Version {BSP.Reader.Header.Version}" );
+			using var _ = Dev.Stopwatch( $"Loading {BSP.Source.Name}, Format {BSP.Reader.Header.Format}, Version {BSP.Reader.Header.Version}" );
 
 			// Create Scene
 			_scene = SceneManager.CreateScene( Path.GetFileName( BSP.Source.Name ) );
@@ -44,7 +44,7 @@ namespace Espionage.Engine.Source
 		public override void Unload( Action finished = null )
 		{
 			_scene.Unload();
-			Debugging.Log.Info( "Finished Unloading BSP" );
+			Dev.Log.Info( "Finished Unloading BSP" );
 
 			finished?.Invoke();
 		}

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Espionage.Engine.Resources;
@@ -18,9 +19,10 @@ namespace Espionage.Engine.Source
 
 		public BSPReader Reader { get; private set; }
 
-		public override void Load( FileStream fileStream )
+		public override void Load( Action loaded )
 		{
 			// Open Streams for reading the header
+			using var fileStream = Info.Open( FileMode.Open, FileAccess.Read );
 			using var binaryReader = new BinaryReader( fileStream );
 			Reader = new( binaryReader );
 
@@ -49,9 +51,15 @@ namespace Espionage.Engine.Source
 			TexdataStringTable = Reader.Read( 44, 4, e => e.ReadInt32() );
 
 			Reader.Dispose();
+
+			Binder = new BSPMapProvider( this );
+			loaded.Invoke();
 		}
 
-		public override Map.Binder Binder => new BSPMapProvider( this );
+		public override void Unload( Action finished )
+		{
+			finished.Invoke();
+		}
 
 		//
 		// Lumps

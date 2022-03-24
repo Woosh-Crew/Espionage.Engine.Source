@@ -15,7 +15,7 @@ namespace Espionage.Engine.Source
 
 		public BSPMapProvider( BSP bsp )
 		{
-			Identifier = bsp.Source.FullName;
+			Identifier = bsp.Info.FullName;
 			BSP = bsp;
 		}
 
@@ -23,29 +23,20 @@ namespace Espionage.Engine.Source
 		// Resource
 		//
 
-		private Scene _scene;
 		public BSP BSP { get; }
 
-		public override void Load( Action<Scene> finished = null )
+		public override void Load( Action finished = null )
 		{
-			using var _ = Dev.Stopwatch( $"Loading {BSP.Source.Name}, Format {BSP.Reader.Header.Format}, Version {BSP.Reader.Header.Version}" );
+			using var _ = Dev.Stopwatch( $"Loading {BSP.Info.Name}, Format {BSP.Reader.Header.Format}, Version {BSP.Reader.Header.Version}" );
 
 			// Create Scene
-			_scene = SceneManager.CreateScene( Path.GetFileName( BSP.Source.Name ) );
-			SceneManager.SetActiveScene( _scene );
+			Scene = SceneManager.CreateScene( Path.GetFileName( BSP.Info.Name ) );
+			SceneManager.SetActiveScene( Scene );
 
 			// Generate BSP
 			Generate();
 
 			// Finish
-			finished?.Invoke( _scene );
-		}
-
-		public override void Unload( Action finished = null )
-		{
-			_scene.Unload();
-			Dev.Log.Info( "Finished Unloading BSP" );
-
 			finished?.Invoke();
 		}
 

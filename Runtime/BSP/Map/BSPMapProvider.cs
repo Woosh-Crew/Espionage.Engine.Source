@@ -11,19 +11,12 @@ namespace Espionage.Engine.Source
 	[Library, Title( "BSP Map" ), Group( "Maps" )]
 	public class BSPMapProvider : Map.Binder
 	{
-		public override string Identifier { get; }
+		private BSP BSP { get; }
 
 		public BSPMapProvider( BSP bsp )
 		{
-			Identifier = bsp.Info.FullName;
 			BSP = bsp;
 		}
-
-		//
-		// Resource
-		//
-
-		public BSP BSP { get; }
 
 		public override void Load( Action finished = null )
 		{

@@ -13,10 +13,6 @@ namespace Espionage.Engine.Source
 	{
 		public const float Scale = 0.01905f;
 
-		//
-		// File
-		//
-
 		public BSPReader Reader { get; private set; }
 
 		public override void Load( Action loaded )
@@ -58,6 +54,29 @@ namespace Espionage.Engine.Source
 
 		public override void Unload( Action finished )
 		{
+			Planes = null;
+			TextureData = null;
+			Vertices = null;
+			Visibility = null;
+			Nodes = null;
+			TextureInfo = null;
+			Faces = null;
+			LightingInfo = null;
+			Leafs = null;
+			Edges = null;
+			SurfEdges = null;
+			Models = null;
+			DisplacementInfo = null;
+
+			DisplacementVerts = null;
+
+			Cubemaps = null;
+
+			TexdataStringData = null;
+			TexdataStringTable = null;
+
+			Entities = null;
+
 			finished.Invoke();
 		}
 
@@ -65,32 +84,32 @@ namespace Espionage.Engine.Source
 		// Lumps
 		//
 
-		public Plane[] Planes; // LUMP 1
-		public TexData[] TextureData; // LUMP 2
-		public Vector[] Vertices; // LUMP 3
-		public Vis[] Visibility; // LUMP 4
-		public Node[] Nodes; // LUMP 5
-		public TexInfo[] TextureInfo; // LUMP 6
-		public Face[] Faces; // LUMP 7
-		public Lighting[] LightingInfo; // LUMP 8
-		public Leaf[] Leafs; // LUMP 10
-		public Edge[] Edges; // LUMP 12
-		public int[] SurfEdges; // LUMP 13
-		public Model[] Models; // LUMP 14
-		public DispInfo[] DisplacementInfo; // LUMP 26
+		public Plane[] Planes { get; private set; } // LUMP 1
+		public TexData[] TextureData { get; private set; } // LUMP 2
+		public Vector[] Vertices { get; private set; } // LUMP 3
+		public Vis[] Visibility { get; private set; } // LUMP 4
+		public Node[] Nodes { get; private set; } // LUMP 5
+		public TexInfo[] TextureInfo { get; private set; } // LUMP 6
+		public Face[] Faces { get; private set; } // LUMP 7
+		public Lighting[] LightingInfo { get; private set; } // LUMP 8
+		public Leaf[] Leafs { get; private set; } // LUMP 10
+		public Edge[] Edges { get; private set; } // LUMP 12
+		public int[] SurfEdges { get; private set; } // LUMP 13
+		public Model[] Models { get; private set; } // LUMP 14
+		public DispInfo[] DisplacementInfo { get; private set; } // LUMP 26
 
-		public DispVert[] DisplacementVerts; // LUMP 33
+		public DispVert[] DisplacementVerts { get; private set; } // LUMP 33
 
-		public Cubemap[] Cubemaps; // LUMP 42
+		public Cubemap[] Cubemaps { get; private set; } // LUMP 42
 
-		public string[] TexdataStringData; // LUMP 43
-		public int[] TexdataStringTable; // LUMP 44
+		public string[] TexdataStringData { get; private set; } // LUMP 43
+		public int[] TexdataStringTable { get; private set; } // LUMP 44
 
 		//
 		// Entities
 		//
 
-		public Entity[] Entities; // LUMP 0
+		public Entity[] Entities { get; private set; } // LUMP 0
 
 		private Entity[] ReadEntities( BinaryReader reader, Header.Lump lump )
 		{

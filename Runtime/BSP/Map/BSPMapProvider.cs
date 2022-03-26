@@ -70,13 +70,9 @@ namespace Espionage.Engine.Source
 						{
 							property[spawnedEntity] = BSP.Color.Parse( keyValues.Value );
 						}
-						else if ( property.Type == typeof( bool ) )
-						{
-							property[spawnedEntity] = int.Parse( keyValues.Value ) == 1;
-						}
 						else
 						{
-							property[spawnedEntity] = Convert.ChangeType( keyValues.Value, property.Type );
+							property[spawnedEntity] = Converter.Convert( keyValues.Value, property.Type );
 						}
 					}
 				}

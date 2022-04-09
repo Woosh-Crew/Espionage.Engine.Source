@@ -20,7 +20,7 @@ namespace Espionage.Engine.Source
 
 		public override void Load( Action finished = null )
 		{
-			using var _ = Dev.Stopwatch( $"Loading {BSP.Info.Name}, Format {BSP.Reader.Header.Format}, Version {BSP.Reader.Header.Version}" );
+			using var _ = Debugging.Stopwatch( $"Loading {BSP.Info.Name}, Format {BSP.Reader.Header.Format}, Version {BSP.Reader.Header.Version}" );
 
 			// Create Scene
 			Scene = SceneManager.CreateScene( Path.GetFileName( BSP.Info.Name ) );

@@ -42,7 +42,7 @@ namespace Espionage.Engine.Source
 			foreach ( var entity in BSP.Entities )
 			{
 				var className = entity.KeyValues["classname"];
-				var spawnedEntity = Library.Database.Create( className );
+				var spawnedEntity = Library.Create( className );
 
 				// If we're not a valid entity, continue.
 				if ( spawnedEntity is null )

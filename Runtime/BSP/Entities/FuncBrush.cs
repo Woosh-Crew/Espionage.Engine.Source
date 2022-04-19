@@ -17,10 +17,10 @@ namespace Espionage.Engine.Source
         public void OnRead( BSP.Entity ent, GameObject model )
         {
             // Set Parent
-            model.transform.parent = transform;
+            model.transform.parent = this;
             model.transform.localPosition = BSP.Vector.Parse( ent.KeyValues["origin"] );
 
-            var renderers = GetComponentsInChildren<MeshRenderer>();
+            var renderers = GameObject.GetComponentsInChildren<MeshRenderer>();
 
             foreach ( var meshRenderer in renderers )
             {

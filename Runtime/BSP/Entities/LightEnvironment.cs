@@ -24,14 +24,14 @@ namespace Espionage.Engine.Source
         {
             if ( _lightEnv != null )
             {
-                Destroy( gameObject );
+	            GameObject.Destroy( GameObject );
                 return;
             }
 
             _lightEnv = this;
 
             // Create Directional Light
-            _light = gameObject.AddComponent<Light>();
+            _light = GameObject.AddComponent<Light>();
             _light.type = LightType.Directional;
             _light.shadows = LightShadows.Soft;
             _light.color = Color;

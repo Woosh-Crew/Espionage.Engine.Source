@@ -26,7 +26,7 @@ namespace Espionage.Engine.Source
         public void OnRead( BSP.Entity ent )
         {
             // Create Directional Light
-            var light = gameObject.AddComponent<Light>();
+            var light = GameObject.AddComponent<Light>();
             light.type = LightType.Spot;
             light.shadows = LightShadows.Soft;
             light.spotAngle = Cone * 2;
